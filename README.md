@@ -5,6 +5,7 @@
 This repository provides a boilerplate for OpenGL project with [GLFW](https://www.glfw.org/), [GLAD](https://glad.dav1d.de/), [GLM](https://glm.g-truc.net/), [SOIL](https://www.lonesock.net/soil.html) and [FreeType](https://www.freetype.org/) on Mac OS. It also provides a
 `.vscode/c_cpp_properties.json` file for VSCode.
 
+
 ## Structure
 
 This is the structure of the boilerplate.
@@ -53,6 +54,21 @@ If you want libraries of certain versions, you can still keep the structure of t
 
 You will need to place your own source files under the `src` folder. We have placed a simple file which will create a window.
 
+### Additional Setup
+
+Your program may depend on external resources. You can create a `resources` directory at the root of this project, and append the following lines to the `CMakeLists.txt`:
+
+```cmake
+# Copy to bin
+add_custom_target(copy-runtime-files ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/bin/resources
+)
+add_dependencies(${EXECUTABLE_NAME} copy-runtime-files)
+```
+
+Then you can refer to your resource file as `resources/foo` in your code.
+
+
 ## Developing
 
 We suggest using VSCode with [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) extension so that you can build or debug simply by just clicking buttons in the status bar after proper configuration.
@@ -74,6 +90,7 @@ make  # or `cmake --build .`
 ```
 
 The generated executable will be placed at `build/bin` .
+
 
 ## Reminder
 
