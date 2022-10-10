@@ -1,5 +1,7 @@
 # OpenGL Boilerplate for Mac
 
+**Apple Silicon (e.g. ARM64-based M1, M2) supported!**
+
 This repository provides a boilerplate for OpenGL project with [GLFW](https://www.glfw.org/), [GLAD](https://glad.dav1d.de/), [GLM](https://glm.g-truc.net/), [SOIL](https://www.lonesock.net/soil.html) and [FreeType](https://www.freetype.org/) on Mac OS. It also provides a
 `.vscode/c_cpp_properties.json` file for VSCode.
 
@@ -38,9 +40,14 @@ This is the structure of the boilerplate.
 
 We provide `GLAD`, `GLFW`, `GLM`, `SOIL` and `FreeType` for this project. We have already placed `GLFW` (version 3.3.8), `GLAD` (verison 4.6) and `GLM` (version 0.9.9.8) files under the `external` folder. We have also pre-compiled SOIL (version July 7, 2008) and FreeType (version 2.10.0), and placed their files likewise.
 
-If you want libraries of certain versions, you can still keep the structure of this project, and go [here](http://www.glfw.org/download.html) to download the pre-compiled binaries of GLFW, go [here](https://glad.dav1d.de/) to generate GLAD source of your preferred version, go [here](https://github.com/g-truc/glm/releases) to download GLM, and go [here](http://www.lonesock.net/soil.html) to download SOIL.
+If you want libraries of certain versions, you can still keep the structure of this project, and
 
-Tips: You can try [this project](https://github.com/DeVaukz/SOIL) to compile SOIL.
+- go [here](http://www.glfw.org/download.html) to download the pre-compiled binaries of GLFW
+- go [here](https://glad.dav1d.de/) to generate GLAD source of your preferred version
+- go [here](https://github.com/g-truc/glm/releases) to download GLM
+- go [here](http://www.lonesock.net/soil.html) to download and compile SOIL.
+  - Tips: You can try [this project](https://github.com/DeVaukz/SOIL) to compile SOIL.
+- go [here](https://www.freetype.org) to download and compile FreeType.
 
 ### Sources
 
