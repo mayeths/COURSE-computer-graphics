@@ -12,6 +12,7 @@
 #include "Window.hpp"
 #include "texture.hpp"
 #include "log.h"
+#include "buffers.hpp"
 
 // #include "GUI.hpp"
 
@@ -71,11 +72,18 @@ int main(int argc, char* argv[]) {
     glfwGetVersion(&major, &minor, &rev);
     log_info("GLFW version: %d.%d.%d\n", major, minor, rev);
 
+    FrameBufferObject SceneFBO(Window::SCR_WIDTH, Window::SCR_HEIGHT);
+
 	while (window.continueLoop())
 	{
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		SceneFBO.bind();
+
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		window.swapBuffersAndPollEvents();
