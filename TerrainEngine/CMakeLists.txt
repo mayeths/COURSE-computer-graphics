@@ -17,10 +17,10 @@ else()
 endif()
 
 
-project(opengl-mac-boilerplate)
+project(TerrianEngine)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(EXECUTABLE_NAME ${PROJECT_NAME}-${ARCH})
+set(EXECUTABLE_NAME terrain)
 
 # Mac OS libraries
 find_library(COCOA_LIBRARY Cocoa)
@@ -29,6 +29,7 @@ find_library(IO_KIT_LIBRARY IOKit)
 
 # Source and external package files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 aux_source_directory(${SRC_DIR} SOURCES)
 set(GLFW_DIR "${EXT_DIR}/glfw")
@@ -41,7 +42,8 @@ link_directories(${GLFW_DIR}/lib-${ARCH} ${SOIL_DIR}/lib-${ARCH} ${FREETYPE_DIR}
 # Add the executable
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 target_include_directories(${EXECUTABLE_NAME} PRIVATE "${SRC_DIR}")
-set_property(TARGET ${EXECUTABLE_NAME} PROPERTY CXX_STANDARD 17)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE "${INC_DIR}")
+set_property(TARGET ${EXECUTABLE_NAME} PROPERTY CXX_STANDARD 11)
 
 # Mac OS Libraries
 target_link_libraries(${EXECUTABLE_NAME} ${COCOA_LIBRARY} ${OpenGL_LIBRARY} ${IO_KIT_LIBRARY})
@@ -67,3 +69,10 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE "${SOIL_DIR}/include")
 # Freetype
 target_link_libraries(${EXECUTABLE_NAME} freetype)
 target_include_directories(${EXECUTABLE_NAME} PRIVATE "${FREETYPE_DIR}/include")
+
+# imgui
+set(IMGUI_DIR "${EXT_DIR}/imgui")
+add_library("imgui" "${IMGUI_DIR}/imgui.cpp")
+target_include_directories("imgui" PRIVATE "${IMGUI_DIR}")
+target_include_directories(${EXECUTABLE_NAME} PRIVATE "${EXT_DIR}")
+target_link_libraries(${EXECUTABLE_NAME} "imgui" "${CMAKE_DL_LIBS}")
