@@ -21,7 +21,7 @@ class Camera
 {
 public:
     // Default camera values
-    static inline const glm::vec3 INIT_POSITION = glm::vec3(0.0f, 0.0f, 3.0f);
+    static inline const glm::vec3 INIT_POSITION = glm::vec3(0.0f, 0.0f, 0.0f);
     static inline const glm::vec3 INIT_FRONT = glm::vec3(0.0f, 0.0f, -1.0f);
     static inline const glm::vec3 INIT_WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
     static inline const float INIT_MOVEMENT_SPEED =  2.5f;
@@ -108,10 +108,8 @@ public:
         float velocity = this->MovementSpeed * deltaUpdateTime;
         if (direction == FORWARD)
             this->Position += this->Front * velocity;
-        if (direction == BACKWARD) {
+        if (direction == BACKWARD)
             this->Position -= this->Front * velocity;
-            // log_debug("backward: (%.2f %.2f %.2f) %f", this->Front.x, this->Front.y, this->Front.z, velocity);
-        }
         if (direction == LEFT)
             this->Position -= this->Right * velocity;
         if (direction == RIGHT)
