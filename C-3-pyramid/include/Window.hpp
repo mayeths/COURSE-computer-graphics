@@ -16,6 +16,23 @@ public:
     static inline uint32_t SCR_HEIGHT = 900;
     static inline std::string name = "Mayeths' OpenGL Program";
     GLFWwindow* w;
+    bool firstMouse = true;
+    float yaw   = -90.0f;
+    float pitch =  0.0f;
+    float lastX =  800.0f / 2.0;
+    float lastY =  600.0 / 2.0;
+    float fov   =  45.0f;
+    float fovSpringiness = 35.0f; /* https://stackoverflow.com/a/10228863 */
+    float mouseSensitivity = 0.05f;
+    float cameraSpeedScale = 5.0f;
+    double lastScrollPollTime = -100000.0f;
+    double lastScrollPollYOffset = 0.0f;
+    const glm::vec3 worldNormal = glm::vec3(0.0f, 1.0f, 0.0f); // 法线（定义世界的上）
+    glm::vec3 cameraPos;
+    glm::vec3 cameraFront;
+    glm::vec3 cameraUp;
+    glm::vec3 direction;
+    glm::mat4 view;
 
     // struct KeyCallbackParam {
     //     Window *window;
@@ -52,6 +69,7 @@ public:
             return;
         }
         glfwMakeContextCurrent(this->w);
+        glfwSetWindowUserPointer(this->w, this);
 
         *success = gladLoader() && *success;
         if (*success) {
@@ -62,6 +80,7 @@ public:
         glfwSetFramebufferSizeCallback(this->w, &Window::framebuffer_size_callback);
         glfwSetCursorPosCallback(this->w, &Window::mouse_callback);
         glfwSetScrollCallback(this->w, &Window::scroll_callback);
+        glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         // glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         // glfwSetWindowUserPointer(this->w, this);
         glEnable(GL_DEPTH_TEST);
@@ -72,10 +91,20 @@ public:
         this->terminate();
     }
 
-    void processInput(float updateTime, float renderTime)
+    void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
         if (glfwGetKey(this->w, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(this->w, true);
+
+        const float cameraSpeed = cameraSpeedScale * deltaUpdateTime;
+        if (glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS)
+            cameraPos += glm::normalize(cameraFront) * cameraSpeed;
+        if (glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS)
+            cameraPos -= glm::normalize(cameraFront) * cameraSpeed;
+        if (glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS)
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS)
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
 
     int gladLoader()
@@ -103,12 +132,47 @@ public:
     }
 
     // glfw: whenever the mouse moves, this callback is called
-    static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+    static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     {
+        Window *self = (Window *)glfwGetWindowUserPointer(window);
+        float xpos = static_cast<float>(xposIn);
+        float ypos = static_cast<float>(yposIn);
+
+        if (self->firstMouse) {
+            self->lastX = xpos;
+            self->lastY = ypos;
+            self->firstMouse = false;
+        }
+
+        float xoffset = xpos - self->lastX;
+        float yoffset = self->lastY - ypos;
+        self->lastX = xpos;
+        self->lastY = ypos;
+
+        xoffset *= self->mouseSensitivity;
+        yoffset *= self->mouseSensitivity;
+
+        self->yaw += xoffset;
+        self->pitch += yoffset;
+
+        if (self->pitch > 89.0f)
+            self->pitch = 89.0f;
+        if (self->pitch < -89.0f)
+            self->pitch = -89.0f;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
+        front.y = sin(glm::radians(self->pitch));
+        front.z = sin(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
+        self->cameraFront = glm::normalize(front);
     }
 
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     {
+        Window *self = (Window *)glfwGetWindowUserPointer(window);
+        double maximumYOffset = 5.0f;
+        self->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
+        self->lastScrollPollTime = glfwGetTime();
     }
 
     // put this at the end of the main

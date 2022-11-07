@@ -22,6 +22,13 @@ static int SCR_WIDTH  = 800;
 static int SCR_HEIGHT = 600;
 
 
+const double fpsLimit = 60;
+double lastUpdateTime = 0;
+double lastRenderTime = 0;
+double deltaUpdateTime = 0;
+double deltaRenderTime = 0;
+
+void processingInput(GLFWwindow *window);
 
 
 int main() {
@@ -178,25 +185,24 @@ int main() {
     ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
 
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT, 0.1f, 100.0f);
-    ourShader.setMat4("projection", projection);
-
     GUI gui(window);
+    window.cameraPos = glm::vec3(0.0f, 0.0f,  3.0f); // initial position at z=3
+    window.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); // look to z=-1
+    window.cameraUp = window.worldNormal; // as world normal
+    window.view = glm::lookAt(window.cameraPos, window.cameraFront, window.cameraUp);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    const double fpsLimit = 60;
-    double lastUpdateTime = 0;
-    double lastRenderTime = 0;
     while (window.continueLoop()) {
         double now = glfwGetTime();
-        double deltaUpdateTime = now - lastUpdateTime;
-        double deltaRenderTime = now - lastRenderTime;
+        deltaUpdateTime = now - lastUpdateTime;
+        deltaRenderTime = now - lastRenderTime;
 
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
+        processingInput(window.w);
 
         ////// frame render
-        if ((now - lastRenderTime) >= 1.0 / fpsLimit) {
+        if (deltaRenderTime >= 1.0 / fpsLimit) {
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -206,18 +212,25 @@ int main() {
             glBindTexture(GL_TEXTURE_2D, texture2);
 
             ourShader.use();
-            glm::mat4 view = glm::mat4(1.0f);
-            float radius = 10.0f;
-            float camX = static_cast<float>(sin(now) * radius);
-            float camZ = static_cast<float>(cos(now) * radius);
-            view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            ourShader.setMat4("view", view);
+            window.view = glm::lookAt(window.cameraPos, window.cameraPos + window.cameraFront, window.cameraUp);
+            ourShader.setMat4("view", window.view);
+
+            if (lastRenderTime - window.lastScrollPollTime <= 0.5f) {
+                window.fov -= (float)window.lastScrollPollYOffset * window.fovSpringiness * deltaRenderTime;
+                if (window.fov < 15.0f)
+                    window.fov = 15.0f;
+                if (window.fov > 45.0f)
+                    window.fov = 45.0f;
+            }
+            glm::mat4 projection = glm::perspective(glm::radians(window.fov), (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT, 0.1f, 100.0f);
+            ourShader.setMat4("projection", projection);
 
             glBindVertexArray(VAO);
             for (int i = 0; i < cubePositions.size(); i++) {
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, cubePositions[i]);
-                model = glm::rotate(model, (float)(20.0f * i + now), glm::vec3(1.0f, 0.3f, 0.5f));
+                // model = glm::rotate(model, (float)(20.0f * i + now), glm::vec3(1.0f, 0.3f, 0.5f));
+                model = glm::rotate(model, (float)(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
                 ourShader.setMat4("model", model);
 
                 glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -239,4 +252,8 @@ int main() {
     glDeleteBuffers(1, &VBO);
 
     return 0;
+}
+
+void processingInput(GLFWwindow *window)
+{
 }
