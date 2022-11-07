@@ -34,12 +34,11 @@ public:
     }
     void draw(double delta)
     {
-        double xpos = ImGui::GetIO().DisplaySize.x - 64;
+        double xpos = ImGui::GetIO().DisplaySize.x - 60;
         double ypos = 32.0f;
         ImGui::SetNextWindowPos(ImVec2(xpos, ypos), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
-        ImGui::Begin("Stat", NULL, ImGuiWindowFlags_NoResize);
-        // double framerate = ImGui::GetIO().Framerate;
-        // double delta = 1000.0f / ImGui::GetIO().Framerate;
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("Stat", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
         double framerate = 1 / delta;
         ImGui::Text("%.0f FPS", framerate);
         ImGui::End();

@@ -110,6 +110,12 @@ target_link_libraries("imgui" PUBLIC ${OPENGL_LIBRARIES})
 
 target_link_libraries(${EXE} "imgui")
 
+# Resources
+add_custom_target(copy_assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets
+)
+add_dependencies(${EXE} copy_assets)
+
 # # glfw
 # target_compile_definitions(${EXE} PRIVATE "GLFW_INCLUDE_NONE")
 # target_include_directories(${EXE} PRIVATE "${GLFW_DIR}/include")

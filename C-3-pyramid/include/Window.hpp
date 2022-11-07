@@ -61,7 +61,7 @@ public:
         this->terminate();
     }
 
-    void processInput(float frameTime)
+    void processInput(float updateTime, float renderTime)
     {
         if (glfwGetKey(this->w, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(this->w, true);
