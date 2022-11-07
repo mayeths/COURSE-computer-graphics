@@ -97,6 +97,19 @@ int main() {
         -0.5f, +0.5f, +0.5f,  0.0f*2, 1.0f*2,
         -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
     };
+    const std::vector<glm::vec3> cubePositions {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f),
+    };
+
     GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -165,6 +178,9 @@ int main() {
     ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
 
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT, 0.1f, 100.0f);
+    ourShader.setMat4("projection", projection);
+
     GUI gui(window);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -189,37 +205,20 @@ int main() {
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, texture2);
 
-            const std::vector<glm::vec3> cubePositions {
-                glm::vec3( 0.0f,  0.0f,  0.0f),
-                glm::vec3( 2.0f,  5.0f, -15.0f),
-                glm::vec3(-1.5f, -2.2f, -2.5f),
-                glm::vec3(-3.8f, -2.0f, -12.3f),
-                glm::vec3( 2.4f, -0.4f, -3.5f),
-                glm::vec3(-1.7f,  3.0f, -7.5f),
-                glm::vec3( 1.3f, -2.0f, -2.5f),
-                glm::vec3( 1.5f,  2.0f, -2.5f),
-                glm::vec3( 1.5f,  0.2f, -1.5f),
-                glm::vec3(-1.3f,  1.0f, -1.5f),
-            };
-
             ourShader.use();
+            glm::mat4 view = glm::mat4(1.0f);
+            float radius = 10.0f;
+            float camX = static_cast<float>(sin(now) * radius);
+            float camZ = static_cast<float>(cos(now) * radius);
+            view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            ourShader.setMat4("view", view);
+
             glBindVertexArray(VAO);
             for (int i = 0; i < cubePositions.size(); i++) {
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, cubePositions[i]);
                 model = glm::rotate(model, (float)(20.0f * i + now), glm::vec3(1.0f, 0.3f, 0.5f));
-
-                glm::mat4 view = glm::mat4(1.0f);
-                view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-
-                glm::mat4 projection = glm::mat4(1.0f);
-                projection = glm::perspective(glm::radians(45.0f), (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT, 0.1f, 100.0f);
-
-                GLuint modelLoc = glGetUniformLocation(ourShader.ID, "model");
-                GLuint viewLoc = glGetUniformLocation(ourShader.ID, "view");
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-                ourShader.setMat4("projection", projection);
+                ourShader.setMat4("model", model);
 
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
