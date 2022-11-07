@@ -99,32 +99,23 @@ public:
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
-        if (glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS)
-            this->camera.ProcessKeyboard(FORWARD, deltaUpdateTime);
-        if (glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS)
-            this->camera.ProcessKeyboard(BACKWARD, deltaUpdateTime);
-        if (glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS)
-            this->camera.ProcessKeyboard(LEFT, deltaUpdateTime);
-        if (glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS)
-            this->camera.ProcessKeyboard(RIGHT, deltaUpdateTime);
-        if (glfwGetKey(this->w, GLFW_KEY_SPACE) == GLFW_PRESS)
-            this->camera.ProcessKeyboard(UP, deltaUpdateTime);
-        if (glfwGetKey(this->w, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
-            glfwGetKey(this->w, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
-            this->camera.ProcessKeyboard(DOWN, deltaUpdateTime);
+        bool keyW = glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS;
+        bool keyS = glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS;
+        bool keyA = glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS;
+        bool keyD = glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS;
+        bool keySpace = glfwGetKey(this->w, GLFW_KEY_SPACE) == GLFW_PRESS;
+        bool keyLCtrl = glfwGetKey(this->w, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+        bool keyRCtrl = glfwGetKey(this->w, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+        bool keyESC = glfwGetKey(this->w, GLFW_KEY_ESCAPE) == GLFW_PRESS;
 
-        if (glfwGetKey(this->w, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(this->w, true);
+        if (keyW) this->camera.ProcessKeyboard(FORWARD, deltaUpdateTime);
+        if (keyS) this->camera.ProcessKeyboard(BACKWARD, deltaUpdateTime);
+        if (keyA) this->camera.ProcessKeyboard(LEFT, deltaUpdateTime);
+        if (keyD) this->camera.ProcessKeyboard(RIGHT, deltaUpdateTime);
+        if (keySpace) this->camera.ProcessKeyboard(UP, deltaUpdateTime);
+        if (keyLCtrl || keyRCtrl) this->camera.ProcessKeyboard(DOWN, deltaUpdateTime);
 
-        // const float cameraSpeed = cameraSpeedScale * deltaUpdateTime;
-        // if (glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS)
-        //     cameraPos += glm::normalize(cameraFront) * cameraSpeed;
-        // if (glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS)
-        //     cameraPos -= glm::normalize(cameraFront) * cameraSpeed;
-        // if (glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS)
-        //     cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-        // if (glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS)
-        //     cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (keyESC) glfwSetWindowShouldClose(this->w, true);
     }
 
     int gladLoader()

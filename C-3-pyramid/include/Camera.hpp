@@ -21,15 +21,20 @@ class Camera
 {
 public:
     // Default camera values
+    static inline const glm::vec3 BASE_X = glm::vec3(1.0f, 0.0f, 0.0f);
+    static inline const glm::vec3 BASE_Y = glm::vec3(0.0f, 1.0f, 0.0f);
+    static inline const glm::vec3 BASE_Z = glm::vec3(0.0f, 0.0f, 1.0f);
     static inline const glm::vec3 INIT_POSITION = glm::vec3(0.0f, 0.0f, 0.0f);
     static inline const glm::vec3 INIT_FRONT = glm::vec3(0.0f, 0.0f, -1.0f);
     static inline const glm::vec3 INIT_WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
-    static inline const float INIT_MOVEMENT_SPEED =  2.5f;
+    static inline const float INIT_MOVEMENT_SPEED =  8.0f;
     static inline const float INIT_MOUSE_SENSITIVITY =  0.1f;
     static inline const float INIT_ZOOM =  45.0f;
     static inline const float INIT_YAW = -90.0f;
     static inline const float INIT_PITCH =  0.0f;
-    static inline const float INIT_ZOOM_SPRINGINESS = 35.0f; /* https://stackoverflow.com/a/10228863 */
+    static inline const float INIT_ZOOM_SPRINGINESS = 10.0f; /* https://stackoverflow.com/a/10228863 */
+    static inline const float INIT_MINIMUM_ZOOM = 25.0f;
+    static inline const float INIT_MAXIMUM_ZOOM = 45.0f;
 
     // camera Attributes
     glm::vec3 Position;
@@ -45,6 +50,8 @@ public:
     float MouseSensitivity;
     float Zoom;
     float ZoomSpringiness;
+    float MinimumZoom;
+    float MaximumZoom;
     double lastScrollPollTime = -100000.0f;
     double lastScrollPollYOffset = 0.0f;
 
@@ -61,6 +68,8 @@ public:
         this->Pitch = Camera::INIT_PITCH;
         this->Zoom = Camera::INIT_ZOOM;
         this->ZoomSpringiness = Camera::INIT_ZOOM_SPRINGINESS;
+        this->MinimumZoom = Camera::INIT_MINIMUM_ZOOM;
+        this->MaximumZoom = Camera::INIT_MAXIMUM_ZOOM;
         this->updateCameraVectorsByEulerAngles();
     }
 
@@ -139,11 +148,11 @@ public:
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset)
     {
-        Zoom -= (float)yoffset;
-        if (Zoom < 25.0f)
-            Zoom = 25.0f;
-        if (Zoom > 45.0f)
-            Zoom = 45.0f;
+        // this->Zoom -= (float)yoffset;
+        // if (this->Zoom < 25.0f)
+        //     this->Zoom = 25.0f;
+        // if (this->Zoom > 45.0f)
+        //     this->Zoom = 45.0f;
         double maximumYOffset = 5.0f;
         this->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
         this->lastScrollPollTime = glfwGetTime();

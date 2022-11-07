@@ -207,10 +207,10 @@ int main() {
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
 
-        if (lastsec != (int)now) {
-            camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
-            lastsec = (int)now;
-        }
+        // if (lastsec != (int)now) {
+        //     camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
+        //     lastsec = (int)now;
+        // }
 
         ////// frame render
         // if (deltaRenderTime >= 1.0 / fpsLimit) {
@@ -229,7 +229,8 @@ int main() {
             ourShader.setMat4("view", view);
 
             if (lastRenderTime - camera.lastScrollPollTime <= 0.25f) {
-                camera.Zoom -= (float)camera.lastScrollPollYOffset * camera.ZoomSpringiness * deltaRenderTime;
+                float range = (camera.MaximumZoom - camera.MinimumZoom);
+                camera.Zoom -= (float)camera.lastScrollPollYOffset * camera.ZoomSpringiness * deltaRenderTime * range;
                 if (camera.Zoom < 15.0f)
                     camera.Zoom = 15.0f;
                 if (camera.Zoom > 45.0f)
