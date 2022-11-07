@@ -8,6 +8,7 @@
 #include <map>
 
 #include "log.h"
+#include "Camera.hpp"
 
 class Window {
 public:
@@ -16,23 +17,22 @@ public:
     static inline uint32_t SCR_HEIGHT = 900;
     static inline std::string name = "Mayeths' OpenGL Program";
     GLFWwindow* w;
+    Camera camera;
     bool firstMouse = true;
-    float yaw   = -90.0f;
-    float pitch =  0.0f;
-    float lastX =  800.0f / 2.0;
-    float lastY =  600.0 / 2.0;
-    float fov   =  45.0f;
-    float fovSpringiness = 35.0f; /* https://stackoverflow.com/a/10228863 */
-    float mouseSensitivity = 0.05f;
-    float cameraSpeedScale = 5.0f;
-    double lastScrollPollTime = -100000.0f;
-    double lastScrollPollYOffset = 0.0f;
-    const glm::vec3 worldNormal = glm::vec3(0.0f, 1.0f, 0.0f); // 法线（定义世界的上）
-    glm::vec3 cameraPos;
-    glm::vec3 cameraFront;
-    glm::vec3 cameraUp;
-    glm::vec3 direction;
-    glm::mat4 view;
+    // float yaw   = -90.0f;
+    // float pitch =  0.0f;
+    float mouseLastX =  800.0f / 2.0;
+    float mouseLastY =  600.0 / 2.0;
+    // float mouseSensitivity = 0.05f;
+    // float cameraSpeedScale = 5.0f;
+    // double lastScrollPollTime = -100000.0f;
+    // double lastScrollPollYOffset = 0.0f;
+    // const glm::vec3 worldNormal = glm::vec3(0.0f, 1.0f, 0.0f); // 法线（定义世界的上）
+    // glm::vec3 cameraPos;
+    // glm::vec3 cameraFront;
+    // glm::vec3 cameraUp;
+    // glm::vec3 direction;
+    // glm::mat4 view;
 
     // struct KeyCallbackParam {
     //     Window *window;
@@ -45,7 +45,7 @@ public:
 
 public:
     // initializer
-    Window(int *success, std::string name = "Mayeths' Terrain Engine", uint32_t scrW = 1600, uint32_t scrH = 900)
+    Window(int *success, std::string name = "Mayeths' Terrain Engine", uint32_t scrW = 1600, uint32_t scrH = 900) : camera(Camera::INIT_WORLD_UP)
     {
         Window::SCR_WIDTH  = scrW;
         Window::SCR_HEIGHT = scrH;
@@ -84,6 +84,12 @@ public:
         // glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         // glfwSetWindowUserPointer(this->w, this);
         glEnable(GL_DEPTH_TEST);
+
+        camera.setPosition(Camera::INIT_POSITION)
+            .setLookAtTarget(Camera::INIT_FRONT)
+            .setMovementSpeed(Camera::INIT_MOVEMENT_SPEED)
+            .setMouseSensitivity(Camera::INIT_MOUSE_SENSITIVITY)
+        ;
     }
 
     ~Window()
@@ -93,18 +99,32 @@ public:
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
+        if (glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS)
+            this->camera.ProcessKeyboard(FORWARD, deltaUpdateTime);
+        if (glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS)
+            this->camera.ProcessKeyboard(BACKWARD, deltaUpdateTime);
+        if (glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS)
+            this->camera.ProcessKeyboard(LEFT, deltaUpdateTime);
+        if (glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS)
+            this->camera.ProcessKeyboard(RIGHT, deltaUpdateTime);
+        if (glfwGetKey(this->w, GLFW_KEY_SPACE) == GLFW_PRESS)
+            this->camera.ProcessKeyboard(UP, deltaUpdateTime);
+        if (glfwGetKey(this->w, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+            glfwGetKey(this->w, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+            this->camera.ProcessKeyboard(DOWN, deltaUpdateTime);
+
         if (glfwGetKey(this->w, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(this->w, true);
 
-        const float cameraSpeed = cameraSpeedScale * deltaUpdateTime;
-        if (glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS)
-            cameraPos += glm::normalize(cameraFront) * cameraSpeed;
-        if (glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS)
-            cameraPos -= glm::normalize(cameraFront) * cameraSpeed;
-        if (glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS)
-            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-        if (glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS)
-            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        // const float cameraSpeed = cameraSpeedScale * deltaUpdateTime;
+        // if (glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS)
+        //     cameraPos += glm::normalize(cameraFront) * cameraSpeed;
+        // if (glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS)
+        //     cameraPos -= glm::normalize(cameraFront) * cameraSpeed;
+        // if (glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS)
+        //     cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        // if (glfwGetKey(this->w, GLFW_KEY_D) == GLFW_PRESS)
+        //     cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
 
     int gladLoader()
@@ -139,40 +159,43 @@ public:
         float ypos = static_cast<float>(yposIn);
 
         if (self->firstMouse) {
-            self->lastX = xpos;
-            self->lastY = ypos;
+            self->mouseLastX = xpos;
+            self->mouseLastY = ypos;
             self->firstMouse = false;
         }
 
-        float xoffset = xpos - self->lastX;
-        float yoffset = self->lastY - ypos;
-        self->lastX = xpos;
-        self->lastY = ypos;
+        float xoffset = xpos - self->mouseLastX;
+        float yoffset = self->mouseLastY - ypos;
+        self->mouseLastX = xpos;
+        self->mouseLastY = ypos;
 
-        xoffset *= self->mouseSensitivity;
-        yoffset *= self->mouseSensitivity;
+        self->camera.ProcessMouseMovement(xoffset, yoffset);
 
-        self->yaw += xoffset;
-        self->pitch += yoffset;
+        // xoffset *= self->mouseSensitivity;
+        // yoffset *= self->mouseSensitivity;
 
-        if (self->pitch > 89.0f)
-            self->pitch = 89.0f;
-        if (self->pitch < -89.0f)
-            self->pitch = -89.0f;
+        // self->yaw += xoffset;
+        // self->pitch += yoffset;
 
-        glm::vec3 front;
-        front.x = cos(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
-        front.y = sin(glm::radians(self->pitch));
-        front.z = sin(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
-        self->cameraFront = glm::normalize(front);
+        // if (self->pitch > 89.0f)
+        //     self->pitch = 89.0f;
+        // if (self->pitch < -89.0f)
+        //     self->pitch = -89.0f;
+
+        // glm::vec3 front;
+        // front.x = cos(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
+        // front.y = sin(glm::radians(self->pitch));
+        // front.z = sin(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
+        // self->cameraFront = glm::normalize(front);
     }
 
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     {
         Window *self = (Window *)glfwGetWindowUserPointer(window);
-        double maximumYOffset = 5.0f;
-        self->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
-        self->lastScrollPollTime = glfwGetTime();
+        self->camera.ProcessMouseScroll(static_cast<float>(yoffset));
+        // double maximumYOffset = 5.0f;
+        // self->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
+        // self->lastScrollPollTime = glfwGetTime();
     }
 
     // put this at the end of the main
