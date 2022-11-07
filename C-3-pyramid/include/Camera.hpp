@@ -69,19 +69,17 @@ public:
         this->Position = newPosition;
         return *this;
     }
-    // Camera& setFront(glm::vec3 newFront)
-    // {
-    //     this->Front = glm::normalize(newFront);
-    //     this->Right = glm::normalize(glm::cross(this->Front, this->WorldUp));
-    //     this->Up = glm::normalize(glm::cross(this->Right, this->Front));
-    //     return *this;
-    // }
     Camera& setLookAtTarget(glm::vec3 newTarget)
     {
-        // TODO: calculate yaw and pitch then updateCameraVectorsByEulerAngles instead.
-        this->Front = glm::normalize(newTarget - this->Position);
-        this->Right = glm::normalize(glm::cross(this->Front, this->WorldUp));
-        this->Up = glm::normalize(glm::cross(this->Right, this->Front));
+        glm::vec3 front = glm::normalize(newTarget - this->Position);
+        this->Pitch = glm::degrees(asin(front.y));
+        this->Yaw = glm::degrees(asin(front.z / cos(glm::radians(this->Pitch))));
+        this->updateCameraVectorsByEulerAngles();
+        // log_debug("pos (%.2f %.2f %.2f) front (%.2f %.2f %.2f) Yaw %.2f Pitch %.2f",
+        //     this->Position.x, this->Position.y, this->Position.z,
+        //     this->Front.x, this->Front.y, this->Front.z,
+        //     this->Yaw, this->Pitch
+        // );
         return *this;
     }
     Camera& setMovementSpeed(float newMovementSpeed)

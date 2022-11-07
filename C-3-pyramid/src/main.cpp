@@ -103,16 +103,18 @@ int main() {
         -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
     };
     const std::vector<glm::vec3> cubePositions {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f),
+        glm::vec3(0.0f * 2, -1.0f, -3.0f),
+        glm::vec3(1.0f * 2, -1.0f, -3.0f),
+        glm::vec3(2.0f * 2, -1.0f, -3.0f),
+        glm::vec3(3.0f * 2, -1.0f, -3.0f),
+        glm::vec3(0.0f * 2,  0.0f, -3.0f),
+        glm::vec3(1.0f * 2,  0.0f, -3.0f),
+        glm::vec3(2.0f * 2,  0.0f, -3.0f),
+        glm::vec3(3.0f * 2,  0.0f, -3.0f),
+        glm::vec3(0.0f * 2, +1.0f, -3.0f),
+        glm::vec3(1.0f * 2, +1.0f, -3.0f),
+        glm::vec3(2.0f * 2, +1.0f, -3.0f),
+        glm::vec3(3.0f * 2, +1.0f, -3.0f),
     };
 
     GLuint VAO, VBO;
@@ -184,7 +186,10 @@ int main() {
     ourShader.setInt("texture2", 1);
 
     Camera &camera = window.camera;
-    camera.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera
+        .setPosition(glm::vec3(0.0f, 0.0f, 3.0f))
+        .setLookAtTarget(glm::vec3(-1.0f, 0.0f, -1.0f))
+    ;
 
     GUI gui(window);
     // window.cameraPos = glm::vec3(0.0f, 0.0f,  3.0f); // initial position at z=3
@@ -193,6 +198,7 @@ int main() {
     // window.view = glm::lookAt(window.cameraPos, window.cameraFront, window.cameraUp);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    int lastsec = 0;
     while (window.continueLoop()) {
         double now = glfwGetTime();
         deltaUpdateTime = now - lastUpdateTime;
@@ -200,6 +206,11 @@ int main() {
 
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
+
+        if (lastsec != (int)now) {
+            camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
+            lastsec = (int)now;
+        }
 
         ////// frame render
         // if (deltaRenderTime >= 1.0 / fpsLimit) {
