@@ -34,10 +34,10 @@ int main() {
     Shader ourShader("assets/4.2.shader.vs", "assets/4.2.shader.fs");
     GLfloat vertices[] = {
         // positions         // colors         // texture coords
-         0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // ↗
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // ↘
-        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // ↙
-        -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // ↖
+         0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f*2, 1.0f*2, // ↗
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f*2, 0.0f*2, // ↘
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f*2, 0.0f*2, // ↙
+        -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f, 0.0f*2, 1.0f*2  // ↖
     };
     GLuint indices[] = {
         0, 1, 3,
@@ -83,8 +83,8 @@ int main() {
     */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     int width, height, nrChannels;
     GLubyte *data;
@@ -101,15 +101,6 @@ int main() {
     GLuint texture2;
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
-    /* http://www.c-jump.com/bcc/common/Talk3/OpenGL/Wk07_texture/W01_0190_minification_and_magn.htm
-        Ideally, one screen pixel maps to one of the texels in the texture
-        1. (magnification) As the object gets closer to the viewer,
-        multiple screen pixels can map to a single texel
-        Also, what should happen if one screen pixel ends up sampling multiple texels?
-        2. (minification) If the object moves farther away,
-        many texels of the image map to a single pixel on the screen
-        What happens when part of the texture is sampled by a single pixel?
-    */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
