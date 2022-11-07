@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <map>
 
 #include "log.h"
 
@@ -15,6 +16,15 @@ public:
     static inline uint32_t SCR_HEIGHT = 900;
     static inline std::string name = "Mayeths' OpenGL Program";
     GLFWwindow* w;
+
+    // struct KeyCallbackParam {
+    //     Window *window;
+    //     int type;
+    //     double deltaUpdateTime;
+    //     double deltaRenderTime;
+    // };
+    // typedef void (*KeyCallback)(GLFWwindow* window, double xpos, double ypos, float updateTime, float renderTime);
+    // std::map<int, KeyCallback> inputCallback;
 
 public:
     // initializer
@@ -53,7 +63,8 @@ public:
         glfwSetCursorPosCallback(this->w, &Window::mouse_callback);
         glfwSetScrollCallback(this->w, &Window::scroll_callback);
         // glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        // glEnable(GL_DEPTH_TEST);
+        // glfwSetWindowUserPointer(this->w, this);
+        glEnable(GL_DEPTH_TEST);
     }
 
     ~Window()

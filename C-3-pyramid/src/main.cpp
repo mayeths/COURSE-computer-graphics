@@ -31,30 +31,79 @@ int main() {
         return -1;
     }
 
-    Shader ourShader("assets/5.1.transform.vs", "assets/5.1.transform.fs");
+    Shader ourShader("assets/6.2.coordinate_systems.vs", "assets/6.2.coordinate_systems.fs");
     GLfloat vertices[] = {
+        /** OpenGL is Right-handed system
+         * By convention, OpenGL is a right-handed system.
+         * What this basically says is that the positive x-axis is to your right, the 
+         * positive y-axis is up and the positive z-axis is backwards. Think of your 
+         * screen being the center of the 3 axes and the positive z-axis going through 
+         * your screen towards you. The axes are drawn as follows:
+         * https://learnopengl.com/Getting-started/Coordinate-Systems (#Going 3D)
+         * To understand why it's called right-handed do the following:
+         * Stretch your right-arm along the positive y-axis with your hand up top.
+         * Let your thumb point to the right.
+         * Let your pointing finger point up.
+         * Now bend your middle finger downwards 90 degrees.
+         * If you did things right, your thumb should point towards the positive x-axis, 
+         * the pointing finger towards the positive y-axis and your middle finger towards 
+         * the positive z-axis. If you were to do this with your left-arm you would see 
+         * the z-axis is reversed. This is known as a left-handed system and is commonly 
+         * used by DirectX. Note that in normalized device coordinates OpenGL actually 
+         * uses a left-handed system (the projection matrix switches the handedness).
+         */
         // positions         // texture coords
-         0.5f,  0.5f, 0.0f,  1.0f*2, 1.0f*2, // ↗
-         0.5f, -0.5f, 0.0f,  1.0f*2, 0.0f*2, // ↘
-        -0.5f, -0.5f, 0.0f,  0.0f*2, 0.0f*2, // ↙
-        -0.5f,  0.5f, 0.0f,  0.0f*2, 1.0f*2  // ↖
+        // Back (z=-0.5 and xy plane same)
+        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        +0.5f, -0.5f, -0.5f,  1.0f*2, 0.0f*2,
+        +0.5f, +0.5f, -0.5f,  1.0f*2, 1.0f*2,
+        +0.5f, +0.5f, -0.5f,  1.0f*2, 1.0f*2,
+        -0.5f, +0.5f, -0.5f,  0.0f*2, 1.0f*2,
+        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        // Front (z=0.5 and xy plane same)
+        -0.5f, -0.5f,  0.5f,  0.0f*2, 0.0f*2,
+        +0.5f, -0.5f,  0.5f,  1.0f*2, 0.0f*2,
+        +0.5f, +0.5f,  0.5f,  1.0f*2, 1.0f*2,
+        +0.5f, +0.5f,  0.5f,  1.0f*2, 1.0f*2,
+        -0.5f, +0.5f,  0.5f,  0.0f*2, 1.0f*2,
+        -0.5f, -0.5f,  0.5f,  0.0f*2, 0.0f*2,
+        // Left (x=-0.5 and yz plane same)
+        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        -0.5f, +0.5f, -0.5f,  1.0f*2, 0.0f*2,
+        -0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        -0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        -0.5f, -0.5f, +0.5f,  0.0f*2, 1.0f*2,
+        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        // Right (x=0.5 and yz plane same)
+        +0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        +0.5f, +0.5f, -0.5f,  1.0f*2, 0.0f*2,
+        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        +0.5f, -0.5f, +0.5f,  0.0f*2, 1.0f*2,
+        +0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        // Bottom (y=-0.5 and xz plane same)
+        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        +0.5f, -0.5f, -0.5f,  1.0f*2, 0.0f*2,
+        +0.5f, -0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        +0.5f, -0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        -0.5f, -0.5f, +0.5f,  0.0f*2, 1.0f*2,
+        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        // Top (y=0.5 and xz plane same)
+        -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        +0.5f, +0.5f, -0.5f,  1.0f*2, 0.0f*2,
+        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
+        -0.5f, +0.5f, +0.5f,  0.0f*2, 1.0f*2,
+        -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
     };
-    GLuint indices[] = {
-        0, 1, 3,
-        1, 2, 3,
-    };
-    GLuint VAO, VBO, EBO;
+    GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -112,7 +161,7 @@ int main() {
     stbi_image_free(data);
 
     ourShader.use();
-    glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
+    ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
 
     GUI gui(window);
@@ -132,24 +181,30 @@ int main() {
         ////// frame render
         if ((now - lastRenderTime) >= 1.0 / fpsLimit) {
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texture1);
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, texture2);
 
-            glm::mat4 transform = glm::mat4(1.0f);
-            transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-            transform = glm::rotate(transform, (float)now, glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 model = glm::mat4(1.0f);
+            glm::mat4 view = glm::mat4(1.0f);
+            glm::mat4 projection = glm::mat4(1.0f);
+            model = glm::rotate(model, (float)now, glm::vec3(0.5f, 1.0f, 0.0f));
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+            projection = glm::perspective(glm::radians(45.0f), (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT, 0.1f, 100.0f);
 
             ourShader.use();
-            GLuint transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+            GLuint modelLoc = glGetUniformLocation(ourShader.ID, "model");
+            GLuint viewLoc = glGetUniformLocation(ourShader.ID, "view");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+            ourShader.setMat4("projection", projection);
 
             glBindVertexArray(VAO);
-            // glDrawArrays(GL_TRIANGLES, 0, 3);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
             gui.update();
             gui.draw(deltaRenderTime);
