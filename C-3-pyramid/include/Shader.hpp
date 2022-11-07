@@ -44,18 +44,24 @@ public:
         unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex, 1, &vShaderCode, NULL);
         glCompileShader(vertex);
-        this->checkCompileErrors(vertex, "VERTEX");
+        if (!this->checkCompileErrors(vertex, "VERTEX")) {
+            return;
+        }
         // fragment shader
         unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, &fShaderCode, NULL);
         glCompileShader(fragment);
-        this->checkCompileErrors(fragment, "FRAGMENT");
+        if (!this->checkCompileErrors(fragment, "FRAGMENT")) {
+            return;
+        }
         // shader Program
         this->ID = glCreateProgram();
         glAttachShader(this->ID, vertex);
         glAttachShader(this->ID, fragment);
         glLinkProgram(this->ID);
-        this->checkCompileErrors(this->ID, "PROGRAM");
+        if (!this->checkCompileErrors(this->ID, "PROGRAM")) {
+            return;
+        }
         // delete the shaders as they're linked into our program now and no longer necessary
         glDeleteShader(vertex);
         glDeleteShader(fragment);
@@ -87,24 +93,25 @@ public:
     }
 
 private:
-    void checkCompileErrors(unsigned int shader, std::string type)
+    bool checkCompileErrors(unsigned int shader, std::string type)
     {
         int success;
         char infoLog[1024];
         if (type != "PROGRAM") {
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (!success)
-            {
+            if (!success) {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
                 log_error("Shader compilation error: %s", infoLog);
+                return false;
             }
         } else {
             glGetProgramiv(shader, GL_LINK_STATUS, &success);
-            if (!success)
-            {
+            if (!success) {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
                 log_error("Program link error: %s", infoLog);
+                return false;
             }
         }
+        return true;
     }
 };
