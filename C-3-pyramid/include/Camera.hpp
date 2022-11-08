@@ -21,12 +21,13 @@ class Camera
 {
 public:
     // Default camera values
+    static inline const glm::vec3 ORIGIN = glm::vec3(0.0f, 0.0f, 0.0f);
     static inline const glm::vec3 BASE_X = glm::vec3(1.0f, 0.0f, 0.0f);
     static inline const glm::vec3 BASE_Y = glm::vec3(0.0f, 1.0f, 0.0f);
     static inline const glm::vec3 BASE_Z = glm::vec3(0.0f, 0.0f, 1.0f);
-    static inline const glm::vec3 INIT_POSITION = glm::vec3(0.0f, 0.0f, 0.0f);
-    static inline const glm::vec3 INIT_FRONT = glm::vec3(0.0f, 0.0f, -1.0f);
-    static inline const glm::vec3 INIT_WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
+    static inline const glm::vec3 INIT_POSITION = Camera::ORIGIN;
+    static inline const glm::vec3 INIT_FRONT = Camera::INIT_POSITION - Camera::BASE_Z;
+    static inline const glm::vec3 INIT_WORLD_UP = Camera::BASE_Y;
     static inline const float INIT_MOVEMENT_SPEED =  8.0f;
     static inline const float INIT_MOUSE_SENSITIVITY =  0.1f;
     static inline const float INIT_ZOOM =  45.0f;
