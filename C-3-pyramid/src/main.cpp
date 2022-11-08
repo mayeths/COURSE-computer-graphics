@@ -207,10 +207,10 @@ int main() {
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
 
-        // if (lastsec != (int)now) {
-        //     camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
-        //     lastsec = (int)now;
-        // }
+        if (lastsec != (int)now) {
+            camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
+            lastsec = (int)now;
+        }
 
         ////// frame render
         // if (deltaRenderTime >= 1.0 / fpsLimit) {

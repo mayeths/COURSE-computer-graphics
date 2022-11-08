@@ -38,10 +38,6 @@ public:
 
     // camera Attributes
     glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
-    glm::vec3 WorldUp;
     // euler Angles
     float Yaw;
     float Pitch;
@@ -54,14 +50,19 @@ public:
     float MaximumZoom;
     double lastScrollPollTime = -100000.0f;
     double lastScrollPollYOffset = 0.0f;
+private:
+    glm::vec3 _Front;
+    glm::vec3 _Up;
+    glm::vec3 _Right;
+    glm::vec3 _WorldUp;
 
 public:
     // constructor with vectors
     Camera(glm::vec3 initWorldUp = Camera::INIT_WORLD_UP)
     {
-        this->WorldUp = initWorldUp;
+        this->_WorldUp = initWorldUp;
+        this->_Front = glm::normalize(Camera::INIT_FRONT);
         this->Position = Camera::INIT_POSITION;
-        this->Front = glm::normalize(Camera::INIT_FRONT);
         this->MovementSpeed = Camera::INIT_MOVEMENT_SPEED;
         this->MouseSensitivity = Camera::INIT_MOUSE_SENSITIVITY;
         this->Yaw = Camera::INIT_YAW;
@@ -80,15 +81,10 @@ public:
     }
     Camera& setLookAtTarget(glm::vec3 newTarget)
     {
-        glm::vec3 front = glm::normalize(newTarget - this->Position);
-        this->Pitch = glm::degrees(asin(front.y));
-        this->Yaw = glm::degrees(asin(front.z / cos(glm::radians(this->Pitch))));
+        glm::vec3 direction = glm::normalize(newTarget - this->Position);
+        this->Pitch = glm::degrees(asin(direction.y));
+        this->Yaw = glm::degrees(atan2(direction.z, direction.x));
         this->updateCameraVectorsByEulerAngles();
-        // log_debug("pos (%.2f %.2f %.2f) front (%.2f %.2f %.2f) Yaw %.2f Pitch %.2f",
-        //     this->Position.x, this->Position.y, this->Position.z,
-        //     this->Front.x, this->Front.y, this->Front.z,
-        //     this->Yaw, this->Pitch
-        // );
         return *this;
     }
     Camera& setMovementSpeed(float newMovementSpeed)
@@ -106,7 +102,7 @@ public:
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix()
     {
-        return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
+        return glm::lookAt(this->Position, this->Position + this->_Front, this->_Up);
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
@@ -114,17 +110,17 @@ public:
     {
         float velocity = this->MovementSpeed * deltaUpdateTime;
         if (direction == FORWARD)
-            this->Position += this->Front * velocity;
+            this->Position += this->_Front * velocity;
         if (direction == BACKWARD)
-            this->Position -= this->Front * velocity;
+            this->Position -= this->_Front * velocity;
         if (direction == LEFT)
-            this->Position -= this->Right * velocity;
+            this->Position -= this->_Right * velocity;
         if (direction == RIGHT)
-            this->Position += this->Right * velocity;
+            this->Position += this->_Right * velocity;
         if (direction == UP)
-            this->Position += this->Up * velocity;
+            this->Position += this->_Up * velocity;
         if (direction == DOWN)
-            this->Position -= this->Up * velocity;
+            this->Position -= this->_Up * velocity;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -166,8 +162,8 @@ private:
         front.x = cos(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
         front.y = sin(glm::radians(this->Pitch));
         front.z = sin(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
-        this->Front = glm::normalize(front);
-        this->Right = glm::normalize(glm::cross(this->Front, this->WorldUp));
-        this->Up    = glm::normalize(glm::cross(this->Right, this->Front));
+        this->_Front = glm::normalize(front);
+        this->_Right = glm::normalize(glm::cross(this->_Front, this->_WorldUp));
+        this->_Up    = glm::normalize(glm::cross(this->_Right, this->_Front));
     }
 };
