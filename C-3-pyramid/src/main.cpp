@@ -5,6 +5,7 @@
 
 #include <array>
 #include <vector>
+#include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/random.hpp>
@@ -14,9 +15,11 @@
 #include <stb_image.h>
 
 #include "log.h"
+#include "Scene.hpp"
 #include "Window.hpp"
 #include "GUI.hpp"
 #include "Shader.hpp"
+#include "SkyBox.hpp"
 
 static int SCR_WIDTH  = 800;
 static int SCR_HEIGHT = 600;
@@ -38,6 +41,7 @@ int main() {
     }
 
     Shader ourShader("assets/6.2.coordinate_systems.vs", "assets/6.2.coordinate_systems.fs");
+#define scale 1.0f
     GLfloat vertices[] = {
         /** OpenGL is Right-handed system
          * By convention, OpenGL is a right-handed system.
@@ -60,47 +64,47 @@ int main() {
          */
         // positions         // texture coords
         // Back (z=-0.5 and xy plane same)
-        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
-        +0.5f, -0.5f, -0.5f,  1.0f*2, 0.0f*2,
-        +0.5f, +0.5f, -0.5f,  1.0f*2, 1.0f*2,
-        +0.5f, +0.5f, -0.5f,  1.0f*2, 1.0f*2,
-        -0.5f, +0.5f, -0.5f,  0.0f*2, 1.0f*2,
-        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        -0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
+        +0.5f * scale, -0.5f * scale, -0.5f * scale,  1.0f*2, 0.0f*2,
+        +0.5f * scale, +0.5f * scale, -0.5f * scale,  1.0f*2, 1.0f*2,
+        +0.5f * scale, +0.5f * scale, -0.5f * scale,  1.0f*2, 1.0f*2,
+        -0.5f * scale, +0.5f * scale, -0.5f * scale,  0.0f*2, 1.0f*2,
+        -0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
         // Front (z=0.5 and xy plane same)
-        -0.5f, -0.5f,  0.5f,  0.0f*2, 0.0f*2,
-        +0.5f, -0.5f,  0.5f,  1.0f*2, 0.0f*2,
-        +0.5f, +0.5f,  0.5f,  1.0f*2, 1.0f*2,
-        +0.5f, +0.5f,  0.5f,  1.0f*2, 1.0f*2,
-        -0.5f, +0.5f,  0.5f,  0.0f*2, 1.0f*2,
-        -0.5f, -0.5f,  0.5f,  0.0f*2, 0.0f*2,
+        -0.5f * scale, -0.5f * scale,  0.5f * scale,  0.0f*2, 0.0f*2,
+        +0.5f * scale, -0.5f * scale,  0.5f * scale,  1.0f*2, 0.0f*2,
+        +0.5f * scale, +0.5f * scale,  0.5f * scale,  1.0f*2, 1.0f*2,
+        +0.5f * scale, +0.5f * scale,  0.5f * scale,  1.0f*2, 1.0f*2,
+        -0.5f * scale, +0.5f * scale,  0.5f * scale,  0.0f*2, 1.0f*2,
+        -0.5f * scale, -0.5f * scale,  0.5f * scale,  0.0f*2, 0.0f*2,
         // Left (x=-0.5 and yz plane same)
-        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
-        -0.5f, +0.5f, -0.5f,  1.0f*2, 0.0f*2,
-        -0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        -0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        -0.5f, -0.5f, +0.5f,  0.0f*2, 1.0f*2,
-        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        -0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
+        -0.5f * scale, +0.5f * scale, -0.5f * scale,  1.0f*2, 0.0f*2,
+        -0.5f * scale, +0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        -0.5f * scale, +0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        -0.5f * scale, -0.5f * scale, +0.5f * scale,  0.0f*2, 1.0f*2,
+        -0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
         // Right (x=0.5 and yz plane same)
-        +0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
-        +0.5f, +0.5f, -0.5f,  1.0f*2, 0.0f*2,
-        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        +0.5f, -0.5f, +0.5f,  0.0f*2, 1.0f*2,
-        +0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        +0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
+        +0.5f * scale, +0.5f * scale, -0.5f * scale,  1.0f*2, 0.0f*2,
+        +0.5f * scale, +0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        +0.5f * scale, +0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        +0.5f * scale, -0.5f * scale, +0.5f * scale,  0.0f*2, 1.0f*2,
+        +0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
         // Bottom (y=-0.5 and xz plane same)
-        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
-        +0.5f, -0.5f, -0.5f,  1.0f*2, 0.0f*2,
-        +0.5f, -0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        +0.5f, -0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        -0.5f, -0.5f, +0.5f,  0.0f*2, 1.0f*2,
-        -0.5f, -0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        -0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
+        +0.5f * scale, -0.5f * scale, -0.5f * scale,  1.0f*2, 0.0f*2,
+        +0.5f * scale, -0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        +0.5f * scale, -0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        -0.5f * scale, -0.5f * scale, +0.5f * scale,  0.0f*2, 1.0f*2,
+        -0.5f * scale, -0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
         // Top (y=0.5 and xz plane same)
-        -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
-        +0.5f, +0.5f, -0.5f,  1.0f*2, 0.0f*2,
-        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        +0.5f, +0.5f, +0.5f,  1.0f*2, 1.0f*2,
-        -0.5f, +0.5f, +0.5f,  0.0f*2, 1.0f*2,
-        -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
+        -0.5f * scale, +0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
+        +0.5f * scale, +0.5f * scale, -0.5f * scale,  1.0f*2, 0.0f*2,
+        +0.5f * scale, +0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        +0.5f * scale, +0.5f * scale, +0.5f * scale,  1.0f*2, 1.0f*2,
+        -0.5f * scale, +0.5f * scale, +0.5f * scale,  0.0f*2, 1.0f*2,
+        -0.5f * scale, +0.5f * scale, -0.5f * scale,  0.0f*2, 0.0f*2,
     };
     const std::vector<glm::vec3> cubePositions {
         glm::vec3(0.0f * 2, -1.0f, -3.0f),
@@ -153,12 +157,14 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    int width, height, nrChannels;
+    int width, height, nchannels;
     GLubyte *data;
+    GLenum format;
     stbi_set_flip_vertically_on_load(true);
-    data = stbi_load("assets/textures/container.jpg", &width, &height, &nrChannels, 0);
+    data = stbi_load("assets/textures/container.jpg", &width, &height, &nchannels, 0);
+    format = nchannels == 4 ? GL_RGBA : GL_RGB;
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         log_error("Failed to load texture");
@@ -172,9 +178,10 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    data = stbi_load("assets/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("assets/textures/awesomeface.png", &width, &height, &nchannels, 0);
+    format = nchannels == 4 ? GL_RGBA : GL_RGB;
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         log_error("Failed to load texture");
@@ -191,6 +198,22 @@ int main() {
         .setLookAtTarget(glm::vec3(-1.0f, 0.0f, -1.0f))
     ;
 
+    Scene scene;
+    SkyBox skybox;
+    skybox
+        .SetShaderPath("assets/skybox.vs", "assets/skybox.fs")
+        .SetTopImagePath("assets/SkyBox/SkyBox4.bmp") // good
+        .SetNorthImagePath("assets/SkyBox/SkyBox0.bmp") // good
+        .SetEastImagePath("assets/SkyBox/SkyBox1.bmp", -90)
+        .SetSouthImagePath("assets/SkyBox/SkyBox2.bmp") // good
+        .SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90) // good
+        .SetBoxWidth(100.0f)
+        .MoveWith(glm::vec3(0.0f, +25.0f, 0.0f))
+        .Setup()
+    ;
+
+    // skybox.SetBoxWidth(100.0f);
+
     GUI gui(window);
     // window.cameraPos = glm::vec3(0.0f, 0.0f,  3.0f); // initial position at z=3
     // window.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); // look to z=-1
@@ -206,11 +229,12 @@ int main() {
 
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
+        skybox.update(now, deltaUpdateTime);
 
-        if (lastsec != (int)now) {
-            camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
-            lastsec = (int)now;
-        }
+        // if (lastsec != (int)now) {
+        //     camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
+        //     lastsec = (int)now;
+        // }
 
         ////// frame render
         // if (deltaRenderTime >= 1.0 / fpsLimit) {
@@ -243,12 +267,14 @@ int main() {
             for (int i = 0; i < cubePositions.size(); i++) {
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, cubePositions[i]);
-                model = glm::rotate(model, (float)(20.0f * i + now), glm::vec3(1.0f, 0.3f, 0.5f));
-                // model = glm::rotate(model, (float)(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+                model = glm::rotate(model, (float)(45 + now * i), scene.Front());
+                // model = glm::rotate(model, glm::radians((float)(45.0f * i)), glm::vec3(0.0f, 0.0f, -1.0f));
                 ourShader.setMat4("model", model);
 
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
+
+            skybox.render(now, deltaRenderTime, view, projection);
 
             // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

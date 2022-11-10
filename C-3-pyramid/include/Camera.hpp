@@ -28,8 +28,8 @@ public:
     static inline const glm::vec3 INIT_POSITION = Camera::ORIGIN;
     static inline const glm::vec3 INIT_FRONT = Camera::INIT_POSITION - Camera::BASE_Z;
     static inline const glm::vec3 INIT_WORLD_UP = Camera::BASE_Y;
-    static inline const float INIT_MOVEMENT_SPEED =  8.0f;
-    static inline const float INIT_MOUSE_SENSITIVITY =  0.1f;
+    static inline const float INIT_MOVEMENT_SPEED =  10.0f;
+    static inline const float INIT_MOUSE_SENSITIVITY =  0.08f;
     static inline const float INIT_ZOOM =  45.0f;
     static inline const float INIT_YAW = -90.0f;
     static inline const float INIT_PITCH =  0.0f;
@@ -44,6 +44,9 @@ public:
     float Pitch;
     // camera options
     float MovementSpeed;
+    float MoveForwardScale;
+    float MoveHorizontalScale;
+    float MoveUpwardScale;
     float MouseSensitivity;
     float Zoom;
     float ZoomSpringiness;
@@ -65,6 +68,9 @@ public:
         this->_Front = glm::normalize(Camera::INIT_FRONT);
         this->Position = Camera::INIT_POSITION;
         this->MovementSpeed = Camera::INIT_MOVEMENT_SPEED;
+        this->MoveForwardScale = 1.4;
+        this->MoveHorizontalScale = 1.0;
+        this->MoveUpwardScale = 1.0;
         this->MouseSensitivity = Camera::INIT_MOUSE_SENSITIVITY;
         this->Yaw = Camera::INIT_YAW;
         this->Pitch = Camera::INIT_PITCH;
@@ -88,9 +94,24 @@ public:
         this->updateCameraVectorsByEulerAngles();
         return *this;
     }
-    Camera& setMovementSpeed(float newMovementSpeed)
+    Camera& setMovementSpeed(float newSpeed)
     {
-        this->MovementSpeed = newMovementSpeed;
+        this->MovementSpeed = newSpeed;
+        return *this;
+    }
+    Camera& setMoveForwardSpeed(float newScale)
+    {
+        this->MoveForwardScale = newScale;
+        return *this;
+    }
+    Camera& setMoveHorizontalSpeed(float newScale)
+    {
+        this->MoveHorizontalScale = newScale;
+        return *this;
+    }
+    Camera& setMoveUpwardSpeed(float newScale)
+    {
+        this->MoveUpwardScale = newScale;
         return *this;
     }
     Camera& setMouseSensitivity(float newMouseSensitivity)
@@ -109,19 +130,19 @@ public:
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaUpdateTime)
     {
-        float velocity = this->MovementSpeed * deltaUpdateTime;
+        float move = MovementSpeed * deltaUpdateTime;
         if (direction == FORWARD)
-            this->Position += this->_Front * velocity;
+            this->Position += this->_Front * this->MoveForwardScale * move;
         if (direction == BACKWARD)
-            this->Position -= this->_Front * velocity;
+            this->Position -= this->_Front * this->MoveForwardScale * move;
         if (direction == LEFT)
-            this->Position -= this->_Right * velocity;
+            this->Position -= this->_Right * this->MoveHorizontalScale * move;
         if (direction == RIGHT)
-            this->Position += this->_Right * velocity;
+            this->Position += this->_Right * this->MoveHorizontalScale * move;
         if (direction == UP)
-            this->Position += this->_Up * velocity;
+            this->Position += this->_WorldUp * this->MoveUpwardScale * move;
         if (direction == DOWN)
-            this->Position -= this->_Up * velocity;
+            this->Position -= this->_WorldUp * this->MoveUpwardScale * move;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.

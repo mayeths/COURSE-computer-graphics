@@ -13,9 +13,21 @@ class Shader
 public:
     unsigned int ID = 0;
 public:
+    std::string vertexPath;
+    std::string fragmentPath;
 
+    Shader() {}
     Shader(std::string vertexPath, std::string fragmentPath)
     {
+        this->vertexPath = vertexPath;
+        this->fragmentPath = fragmentPath;
+        this->Setup();
+    }
+
+    void Setup()
+    {
+        if (this->ID != 0)
+            return;
         std::string vertexCode;
         std::string fragmentCode;
         std::ifstream vShaderFile;

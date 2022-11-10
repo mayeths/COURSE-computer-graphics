@@ -87,8 +87,6 @@ public:
 
         camera.setPosition(Camera::INIT_POSITION)
             .setLookAtTarget(Camera::INIT_FRONT)
-            .setMovementSpeed(Camera::INIT_MOVEMENT_SPEED)
-            .setMouseSensitivity(Camera::INIT_MOUSE_SENSITIVITY)
         ;
     }
 
