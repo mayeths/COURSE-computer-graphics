@@ -13,8 +13,8 @@
 class Window {
 public:
 
-    static inline uint32_t SCR_WIDTH  = 1600;
-    static inline uint32_t SCR_HEIGHT = 900;
+    uint32_t SCR_WIDTH  = 1600;
+    uint32_t SCR_HEIGHT = 900;
     static inline std::string name = "Mayeths' OpenGL Program";
     GLFWwindow* w;
     Camera camera;
@@ -47,8 +47,8 @@ public:
     // initializer
     Window(int *success, std::string name = "Mayeths' Terrain Engine", uint32_t scrW = 1600, uint32_t scrH = 900) : camera(Camera::INIT_WORLD_UP)
     {
-        Window::SCR_WIDTH  = scrW;
-        Window::SCR_HEIGHT = scrH;
+        this->SCR_WIDTH  = scrW;
+        this->SCR_HEIGHT = scrH;
         *success = 1;
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -61,7 +61,7 @@ public:
         // glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
 
         // glfw window creation
-        this->w = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, name.c_str(), NULL, NULL);
+        this->w = glfwCreateWindow(scrW, scrH, name.c_str(), NULL, NULL);
         if (!this->w) {
             log_fatal("Failed to create GLFW window");
             glfwTerminate();
@@ -138,6 +138,9 @@ public:
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     {
         glViewport(0, 0, width, height);
+        Window *self = (Window *)glfwGetWindowUserPointer(window);
+        self->SCR_WIDTH = width;
+        self->SCR_HEIGHT = height;
     }
 
     // glfw: whenever the mouse moves, this callback is called

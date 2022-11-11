@@ -12,7 +12,6 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-template <typename Derived>
 class DrawableObject
 {
    public:
@@ -20,32 +19,30 @@ class DrawableObject
     glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     GLfloat rotationAngle  = 0; /* in radians */
 
-    Derived& MoveTo(glm::vec3 newPosition)
+    void MoveTo(glm::vec3 newPosition)
     {
         this->position = newPosition;
-        return (Derived&)*this;
     }
-    Derived& MoveWith(glm::vec3 deltaPosition)
+    void MoveWith(glm::vec3 deltaPosition)
     {
-        return this->MoveTo(this->position + deltaPosition);
+        this->MoveTo(this->position + deltaPosition);
     }
 
-    Derived& RotateTo(glm::vec3 rotationAxis, GLfloat newAngle, bool angleIsDegrees = true)
+    void RotateTo(glm::vec3 rotationAxis, GLfloat newAngle, bool angleIsDegrees = true)
     {
         if (angleIsDegrees) {
             newAngle = glm::radians(newAngle);
         }
         this->rotationAxis  = glm::normalize(rotationAxis);
         this->rotationAngle = newAngle;
-        return (Derived&)*this;
     }
-    Derived& RotateWith(glm::vec3 rotationAxis, GLfloat deltaAngle, bool angleIsDegrees = true)
+    void RotateWith(glm::vec3 rotationAxis, GLfloat deltaAngle, bool angleIsDegrees = true)
     {
         if (angleIsDegrees) {
             deltaAngle     = glm::radians(deltaAngle);
             angleIsDegrees = false;
         }
-        return this->RotateToRadians(rotationAxis, this->rotationAngle + deltaAngle, angleIsDegrees);
+        this->RotateTo(rotationAxis, this->rotationAngle + deltaAngle, angleIsDegrees);
     }
 
     glm::mat4 GetModelMatrix()

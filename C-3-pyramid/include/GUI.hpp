@@ -1,15 +1,22 @@
 #pragma once
 #include <list>
+#include <vector>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+#include "DrawableObject.hpp"
 
 #include "Window.hpp"
 
 class GUI
 {
 public:
+    using Callback = std::function<void(GLFWwindow* w, double lastRenderTime, double now)>;
+    std::vector<DrawableObject *> subs;
+    std::vector<GUI::Callback> callbacks;
+
     GUI(Window& window)
     {
         ImGui::CreateContext();
@@ -26,22 +33,31 @@ public:
         ImGui::DestroyContext();
     }
 
+    void subscribe(DrawableObject *obj)
+    {
+        this->subs.push_back(obj);
+    }
+    void subscribe(GUI::Callback callback)
+    {
+        this->callbacks.push_back(callback);
+    }
+
     void update()
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
-    void draw(double delta)
+    void render(GLFWwindow *window, double lastRenderTime, double now)
     {
-        double xpos = ImGui::GetIO().DisplaySize.x - 60;
-        double ypos = 32.0f;
-        ImGui::SetNextWindowPos(ImVec2(xpos, ypos), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
-        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-        ImGui::Begin("Stat", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-        double framerate = 1 / delta;
-        ImGui::Text("%.0f FPS", framerate);
-        ImGui::End();
+        double deltaRenderTime = now - lastRenderTime;
+        for (int i = 0; i < subs.size(); i++) {
+            subs[i]->GUIcallback(deltaRenderTime);
+        }
+        for (int i = 0; i < this->callbacks.size(); i++) {
+            this->callbacks[i](window, lastRenderTime, now);
+        }
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }

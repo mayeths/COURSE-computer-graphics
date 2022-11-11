@@ -8,7 +8,7 @@
 // https://www.khronos.org/opengl/wiki/Array_Texture
 // https://stackoverflow.com/questions/73546924/how-to-use-gl-texture-2d-array-with-stb-image
 
-class SkyBox : public DrawableObject<SkyBox>
+class SkyBox : public DrawableObject
 {
 public:
     Shader shader;
@@ -19,49 +19,42 @@ public:
     GLfloat imageRotation[6];
     GLfloat waterRoll;
 
-    SkyBox& SetTopImagePath(const std::string path, GLfloat rotation = 0)
+    void SetTopImagePath(const std::string path, GLfloat rotation = 0)
     {
         this->imagePaths[0] = path;
         this->imageRotation[0] = rotation;
-        return *this;
     }
-    SkyBox& SetNorthImagePath(const std::string path, GLfloat rotation = 0)
+    void SetNorthImagePath(const std::string path, GLfloat rotation = 0)
     {
         this->imagePaths[1] = path;
         this->imageRotation[1] = rotation;
-        return *this;
     }
-    SkyBox& SetEastImagePath(const std::string path, GLfloat rotation = 0)
+    void SetEastImagePath(const std::string path, GLfloat rotation = 0)
     {
         this->imagePaths[2] = path;
         this->imageRotation[2] = rotation;
-        return *this;
     }
-    SkyBox& SetSouthImagePath(const std::string path, GLfloat rotation = 0)
+    void SetSouthImagePath(const std::string path, GLfloat rotation = 0)
     {
         this->imagePaths[3] = path;
         this->imageRotation[3] = rotation;
-        return *this;
     }
-    SkyBox& SetWestImagePath(const std::string path, GLfloat rotation = 0)
+    void SetWestImagePath(const std::string path, GLfloat rotation = 0)
     {
         this->imagePaths[4] = path;
         this->imageRotation[4] = rotation;
-        return *this;
     }
-    SkyBox& SetBottomImagePath(const std::string path, GLfloat rotation = 0)
+    void SetBottomImagePath(const std::string path, GLfloat rotation = 0)
     {
         this->imagePaths[5] = path;
         this->imageRotation[5] = rotation;
-        return *this;
     }
-    SkyBox& SetShaderPath(const std::string vertexPath, const std::string fragmentPath)
+    void SetShaderPath(const std::string vertexPath, const std::string fragmentPath)
     {
         this->shader.vertexPath = vertexPath;
         this->shader.fragmentPath = fragmentPath;
-        return *this;
     }
-    SkyBox& SetBoxWidth(const GLfloat width)
+    void SetBoxWidth(const GLfloat width)
     {
         this->vertices = {
             // textureid // positions in local space        // texture coords
@@ -118,7 +111,6 @@ public:
                 GL_DYNAMIC_DRAW
             );
         }
-        return *this;
     }
 
     void Setup()

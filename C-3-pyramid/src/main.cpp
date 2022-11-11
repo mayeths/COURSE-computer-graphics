@@ -2,6 +2,7 @@
 #include <SOIL.h>
 #include <glad/glad.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <array>
 #include <vector>
@@ -20,17 +21,6 @@
 #include "GUI.hpp"
 #include "Shader.hpp"
 #include "SkyBox.hpp"
-
-static int SCR_WIDTH  = 800;
-static int SCR_HEIGHT = 600;
-
-
-const double fpsLimit = 60;
-double lastUpdateTime = 0;
-double lastRenderTime = 0;
-double deltaUpdateTime = 0;
-double deltaRenderTime = 0;
-
 
 int main() {
     GLint success = 0;
@@ -200,94 +190,83 @@ int main() {
 
     Scene scene;
     SkyBox skybox;
-    skybox
-        .SetShaderPath("assets/skybox.vs", "assets/skybox.fs")
-        .SetTopImagePath("assets/SkyBox/SkyBox4.bmp") // good
-        .SetNorthImagePath("assets/SkyBox/SkyBox0.bmp") // good
-        .SetEastImagePath("assets/SkyBox/SkyBox1.bmp", -90)
-        .SetSouthImagePath("assets/SkyBox/SkyBox2.bmp") // good
-        .SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90) // good
-        .SetBottomImagePath("assets/SkyBox/SkyBox5.bmp")
-        .SetBoxWidth(50.0f)
-        .MoveWith(glm::vec3(0.0f, +15.0f, 0.0f))
-        .Setup()
-    ;
+    skybox.SetShaderPath("assets/skybox.vs", "assets/skybox.fs");
+    skybox.SetTopImagePath("assets/SkyBox/SkyBox4.bmp");
+    skybox.SetNorthImagePath("assets/SkyBox/SkyBox0.bmp");
+    skybox.SetEastImagePath("assets/SkyBox/SkyBox1.bmp", -90);
+    skybox.SetSouthImagePath("assets/SkyBox/SkyBox2.bmp");
+    skybox.SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90);
+    skybox.SetBottomImagePath("assets/SkyBox/SkyBox5.bmp");
+    skybox.SetBoxWidth(50.0f);
+    skybox.MoveWith(glm::vec3(0.0f, +15.0f, 0.0f));
+    skybox.Setup();
 
     // skybox.SetBoxWidth(100.0f);
 
     GUI gui(window);
-    // window.cameraPos = glm::vec3(0.0f, 0.0f,  3.0f); // initial position at z=3
-    // window.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); // look to z=-1
-    // window.cameraUp = window.worldNormal; // as world normal
-    // window.view = glm::lookAt(window.cameraPos, window.cameraFront, window.cameraUp);
+    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
+        ImGui::SetNextWindowPos(ImVec2(window.SCR_WIDTH-60, 0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("FPS Stat", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    int lastsec = 0;
+        ImGui::SameLine();
+        ImGui::Text("%.0f FPS", 1 / (now - lastRenderTime));
+        ImGui::End();
+    });
+    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
+        ImGui::SetNextWindowPos(ImVec2(0, 32), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("Position Stat", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::Text("Position %2.0f %2.0f %2.0f",
+            camera.Position[0], camera.Position[1], camera.Position[2]
+        );
+        ImGui::End();
+    });
+
+    double now;
+    double lastUpdateTime = 0;
+    double lastRenderTime = 0;
     while (window.continueLoop()) {
-        double now = glfwGetTime();
-        deltaUpdateTime = now - lastUpdateTime;
-        deltaRenderTime = now - lastRenderTime;
+        lastRenderTime = now;
+        lastUpdateTime = now;
+        now = glfwGetTime();
+        double deltaUpdateTime = now - lastUpdateTime;
+        double deltaRenderTime = now - lastRenderTime;
 
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
         skybox.update(now, deltaUpdateTime);
-
-        // if (lastsec != (int)now) {
-        //     camera.setLookAtTarget(cubePositions[lastsec % cubePositions.size()]);
-        //     lastsec = (int)now;
-        // }
+        gui.update();
 
         ////// frame render
-        // if (deltaRenderTime >= 1.0 / fpsLimit) {
-            // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClearColor(64 / 256., 48 / 256., 64 / 256., 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(64 / 256., 48 / 256., 64 / 256., 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, texture1);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, texture2);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
 
-            ourShader.use();
-            glm::mat4 view = camera.GetViewMatrix();
-            // window.view = glm::lookAt(window.cameraPos, window.cameraPos + window.cameraFront, window.cameraUp);
-            // ourShader.setMat4("view", window.view);
-            ourShader.setMat4("view", view);
+        ourShader.use();
+        float screenRatio = (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT;
+        glm::mat4 projection = camera.GetProjectionMatrix(lastRenderTime, now, screenRatio);
+        glm::mat4 view = camera.GetViewMatrix();
+        ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);
 
-            if (lastRenderTime - camera.lastScrollPollTime <= 0.25f) {
-                float range = (camera.MaximumZoom - camera.MinimumZoom);
-                camera.Zoom -= (float)camera.lastScrollPollYOffset * camera.ZoomSpringiness * deltaRenderTime * range;
-                if (camera.Zoom < 15.0f)
-                    camera.Zoom = 15.0f;
-                if (camera.Zoom > 45.0f)
-                    camera.Zoom = 45.0f;
-            }
-            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT, 0.1f, 100.0f);
-            ourShader.setMat4("projection", projection);
+        glBindVertexArray(VAO);
+        for (int i = 0; i < cubePositions.size(); i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, (float)(45 + now * i), scene.Front());
+            ourShader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
-            glBindVertexArray(VAO);
-            for (int i = 0; i < cubePositions.size(); i++) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, cubePositions[i]);
-                model = glm::rotate(model, (float)(45 + now * i), scene.Front());
-                // model = glm::rotate(model, glm::radians((float)(45.0f * i)), glm::vec3(0.0f, 0.0f, -1.0f));
-                ourShader.setMat4("model", model);
+        skybox.render(now, deltaRenderTime, view, projection);
+        gui.render(window.w, lastRenderTime, now);
 
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-            }
-
-            skybox.render(now, deltaRenderTime, view, projection);
-
-            // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-            gui.update();
-            gui.draw(deltaRenderTime);
-
-            window.swapBuffersAndPollEvents();
-            lastRenderTime = now;
-        // }
-
-        lastUpdateTime = now;
+        window.swapBuffersAndPollEvents();
     }
 
     glDeleteVertexArrays(1, &VAO);

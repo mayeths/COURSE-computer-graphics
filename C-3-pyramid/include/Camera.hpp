@@ -52,8 +52,8 @@ public:
     float ZoomSpringiness;
     float MinimumZoom;
     float MaximumZoom;
-    double lastScrollPollTime = -100000.0f;
-    double lastScrollPollYOffset = 0.0f;
+    double LastScrollTime = -100000.0f;
+    double LastScrollY = 0.0f;
 private:
     glm::vec3 _Front;
     glm::vec3 _Up;
@@ -127,6 +127,20 @@ public:
         return glm::lookAt(this->Position, this->Position + this->_Front, this->_Up);
     }
 
+    glm::mat4 GetProjectionMatrix(double lastRenderTime, double now, float screenRatio)
+    {
+        double delta = now - lastRenderTime;
+        if (lastRenderTime - this->LastScrollTime <= 0.25f) {
+            float range = (this->MaximumZoom - this->MinimumZoom);
+            this->Zoom -= (float)this->LastScrollY * this->ZoomSpringiness * delta * range;
+            if (this->Zoom < 15.0f)
+                this->Zoom = 15.0f;
+            if (this->Zoom > 45.0f)
+                this->Zoom = 45.0f;
+        }
+        return glm::perspective(glm::radians(this->Zoom), screenRatio, 0.1f, 100.0f);
+    }
+
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaUpdateTime)
     {
@@ -171,9 +185,9 @@ public:
         //     this->Zoom = 25.0f;
         // if (this->Zoom > 45.0f)
         //     this->Zoom = 45.0f;
-        double maximumYOffset = 5.0f;
-        this->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
-        this->lastScrollPollTime = glfwGetTime();
+        double maximumY = 5.0f;
+        this->LastScrollY = yoffset / maximumY; /* G102 is 3.0f */
+        this->LastScrollTime = glfwGetTime();
     }
 
 private:
