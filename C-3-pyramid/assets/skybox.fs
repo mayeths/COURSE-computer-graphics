@@ -8,15 +8,20 @@ in float TextureIndex;
 // in mat4 Transform2;
 // in mat4 Transform3;
 // in mat4 Transform4;
+// in mat4 Transform5;
 
 uniform sampler2D textureID0;
 uniform sampler2D textureID1;
 uniform sampler2D textureID2;
 uniform sampler2D textureID3;
 uniform sampler2D textureID4;
+uniform sampler2D textureID5;
+
+uniform float WaterRoll;
 
 void main()
 {
+    float OPACITY = 0.5;
     int index = int(TextureIndex);
     if (index < 4)
         if (index < 2)
@@ -28,4 +33,5 @@ void main()
     else
         if (index < 6)
             if (index == 4) FragColor = texture(textureID4, TexCoord);
+            else FragColor = vec4(1.0, 1.0, 1.0, OPACITY) * texture(textureID5, TexCoord + WaterRoll);
 }

@@ -207,8 +207,9 @@ int main() {
         .SetEastImagePath("assets/SkyBox/SkyBox1.bmp", -90)
         .SetSouthImagePath("assets/SkyBox/SkyBox2.bmp") // good
         .SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90) // good
-        .SetBoxWidth(100.0f)
-        .MoveWith(glm::vec3(0.0f, +25.0f, 0.0f))
+        .SetBottomImagePath("assets/SkyBox/SkyBox5.bmp")
+        .SetBoxWidth(50.0f)
+        .MoveWith(glm::vec3(0.0f, +15.0f, 0.0f))
         .Setup()
     ;
 
@@ -238,7 +239,8 @@ int main() {
 
         ////// frame render
         // if (deltaRenderTime >= 1.0 / fpsLimit) {
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClearColor(64 / 256., 48 / 256., 64 / 256., 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glActiveTexture(GL_TEXTURE0);

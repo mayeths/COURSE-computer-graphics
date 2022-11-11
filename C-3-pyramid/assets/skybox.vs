@@ -10,6 +10,7 @@ out mat4 Transform1;
 out mat4 Transform2;
 out mat4 Transform3;
 out mat4 Transform4;
+out mat4 Transform5;
 
 uniform mat4 model;
 uniform mat4 model0;
@@ -17,6 +18,7 @@ uniform mat4 model1;
 uniform mat4 model2;
 uniform mat4 model3;
 uniform mat4 model4;
+uniform mat4 model5;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 transform0;
@@ -24,6 +26,7 @@ uniform mat4 transform1;
 uniform mat4 transform2;
 uniform mat4 transform3;
 uniform mat4 transform4;
+uniform mat4 transform5;
 
 void main()
 {
@@ -38,6 +41,7 @@ void main()
     else
         if (index < 6)
             if (index == 4) gl_Position = projection * view * model4 * vec4(aPos, 1.0f);
+            else gl_Position = projection * view * model5 * vec4(aPos, 1.0f);
 
     // gl_Position = projection * view * model * vec4(aPos, 1.0f);
     TexCoord = vec2(aTexCoord.x, aTexCoord.y);
@@ -48,4 +52,5 @@ void main()
     // Transform2 = transform2;
     // Transform3 = transform3;
     // Transform4 = transform4;
+    // Transform5 = transform5;
 }

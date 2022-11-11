@@ -60,5 +60,5 @@ class DrawableObject
     // Otherwise just don't override it.
     virtual void update(double now, double deltaUpdateTime){};
     virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection) = 0;
-    virtual void GUIcallback(){};
+    virtual void GUIcallback(double deltaRenderTime){};
 };

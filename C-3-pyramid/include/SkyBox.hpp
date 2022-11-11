@@ -12,11 +12,12 @@ class SkyBox : public DrawableObject<SkyBox>
 {
 public:
     Shader shader;
-    std::string imagePaths[5]; /* Top, North, East, South, West */
-    GLuint textureIDs[5];
+    std::string imagePaths[6]; /* Top, North, East, South, West */
+    GLuint textureIDs[6];
     GLuint VAO = 0, VBO = 0, EBO = 0;
-    std::array<GLfloat, 5 * (6 * 6)> vertices;
-    GLfloat imageRotation[5];
+    std::array<GLfloat, 6 * (6 * 6)> vertices;
+    GLfloat imageRotation[6];
+    GLfloat waterRoll;
 
     SkyBox& SetTopImagePath(const std::string path, GLfloat rotation = 0)
     {
@@ -48,6 +49,12 @@ public:
         this->imageRotation[4] = rotation;
         return *this;
     }
+    SkyBox& SetBottomImagePath(const std::string path, GLfloat rotation = 0)
+    {
+        this->imagePaths[5] = path;
+        this->imageRotation[5] = rotation;
+        return *this;
+    }
     SkyBox& SetShaderPath(const std::string vertexPath, const std::string fragmentPath)
     {
         this->shader.vertexPath = vertexPath;
@@ -72,14 +79,14 @@ public:
             1, +0.5f * width, +0.5f * width, -0.5f * width,  1.0f, 1.0f,
             1, -0.5f * width, +0.5f * width, -0.5f * width,  0.0f, 1.0f,
             1, -0.5f * width, -0.5f * width, -0.5f * width,  0.0f, 0.0f,
-            // Right (x=0.5 and yz plane same)
+            // Right (x=0.5 and yz plane same) 这里的texture coords是1-x（所以是100011对比上面的011100）因为为了翻转图像。我不知道比较方便的翻转图像的方法，所以只能这样了。y坐标还是001110。
             2, +0.5f * width, -0.5f * width, -0.5f * width,  1.0f, 0.0f,
             2, +0.5f * width, +0.5f * width, -0.5f * width,  0.0f, 0.0f,
             2, +0.5f * width, +0.5f * width, +0.5f * width,  0.0f, 1.0f,
             2, +0.5f * width, +0.5f * width, +0.5f * width,  0.0f, 1.0f,
             2, +0.5f * width, -0.5f * width, +0.5f * width,  1.0f, 1.0f,
             2, +0.5f * width, -0.5f * width, -0.5f * width,  1.0f, 0.0f,
-            // Front (z=0.5 and xy plane same)
+            // Front (z=0.5 and xy plane same) 这里的texture coords是1-x（所以是100011对比上面的011100）因为为了翻转图像。我不知道比较方便的翻转图像的方法，所以只能这样了。y坐标还是001110。
             3, -0.5f * width, -0.5f * width, +0.5f * width,  1.0f, 0.0f,
             3, +0.5f * width, -0.5f * width, +0.5f * width,  0.0f, 0.0f,
             3, +0.5f * width, +0.5f * width, +0.5f * width,  0.0f, 1.0f,
@@ -93,15 +100,14 @@ public:
             4, -0.5f * width, +0.5f * width, +0.5f * width,  1.0f, 1.0f,
             4, -0.5f * width, -0.5f * width, +0.5f * width,  0.0f, 1.0f,
             4, -0.5f * width, -0.5f * width, -0.5f * width,  0.0f, 0.0f,
+            // Bottom (y=-0.5 and xz plane same)
+            5, -0.5f * width, -0.5f * width, -0.5f * width,  0.0f * width, 0.0f * width,
+            5, +0.5f * width, -0.5f * width, -0.5f * width,  1.0f * width, 0.0f * width,
+            5, +0.5f * width, -0.5f * width, +0.5f * width,  1.0f * width, 1.0f * width,
+            5, +0.5f * width, -0.5f * width, +0.5f * width,  1.0f * width, 1.0f * width,
+            5, -0.5f * width, -0.5f * width, +0.5f * width,  0.0f * width, 1.0f * width,
+            5, -0.5f * width, -0.5f * width, -0.5f * width,  0.0f * width, 0.0f * width,
         };
-
-        // image rotation
-        GLfloat cs[5], sn[5];
-        for (int i = 0; i < 5; i++) {
-            GLfloat theta = glm::radians(this->imageRotation[i]);
-            cs[i] = cos(theta);
-            sn[i] = sin(theta);
-        }
 
         if (this->VAO != 0 && this->VBO != 0) {
             glBindVertexArray(this->VAO);
@@ -140,16 +146,19 @@ public:
 
         // Shader
         this->shader.Setup();
-        glGenTextures(5, this->textureIDs);
+        glGenTextures(6, this->textureIDs);
         stbi_set_flip_vertically_on_load(true);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             glBindTexture(GL_TEXTURE_2D, this->textureIDs[i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            if (i != 5) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            } else {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            }
             const char *path = this->imagePaths[i].c_str();
             int width, height, nchannels;
             GLubyte *data = stbi_load(path, &width, &height, &nchannels, 0);
@@ -168,8 +177,10 @@ public:
         this->shader.setInt("textureID2", 2);
         this->shader.setInt("textureID3", 3);
         this->shader.setInt("textureID4", 4);
+        this->shader.setInt("textureID5", 5);
+        this->waterRoll = 0.0;
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             glm::mat4 trans = glm::mat4(1.0f);
             trans = glm::rotate(trans, glm::radians(this->imageRotation[i]), glm::vec3(0.0, 0.0, 1.0));
             // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
@@ -190,9 +201,14 @@ public:
         glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, this->textureIDs[2]);
         glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, this->textureIDs[3]);
         glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, this->textureIDs[4]);
+        glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, this->textureIDs[5]);
 
         Scene scene;
         // model = glm::rotate(model, this->imageRotation[0], scene.Down());
+
+        // glEnable(GL_CULL_FACE);
+        // glCullFace(GL_BACK);
+        // glFrontFace(GL_CW);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, this->position);
@@ -205,9 +221,24 @@ public:
         this->shader.setMat4("model2", glm::rotate(model, glm::radians(this->imageRotation[2]), scene.Right()));
         this->shader.setMat4("model3", glm::rotate(model, glm::radians(this->imageRotation[3]), scene.Behind()));
         this->shader.setMat4("model4", glm::rotate(model, glm::radians(this->imageRotation[4]), scene.Right()));
+        this->shader.setMat4("model5", glm::rotate(model, glm::radians(this->imageRotation[5]), scene.Down()));
+        this->shader.setFloat("WaterRoll", this->waterRoll);
+        this->waterRoll += deltaRenderTime;
         glDrawArrays(GL_TRIANGLES, 0, 30);
+
+        // glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        // glEnable(GL_ALPHA_TEST);
+        // glAlphaFunc(GL_EQUAL, 1.0);
+        // glBindTexture(GL_TEXTURE_2D, texture[5]);   //绘制半透明海面波浪
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    //用于绘制半透明的海面波纹以与底面纹理形成天空倒影的效果
+        glDrawArrays(GL_TRIANGLES, 30, 6);
+        glDisable(GL_BLEND);
+        // glEnable(GL_DEPTH_TEST);
+
+        // glDisable(GL_CULL_FACE);
     }
 
-    virtual void GUIcallback() {}
+    virtual void GUIcallback(double deltaRenderTime) {}
 
 };
