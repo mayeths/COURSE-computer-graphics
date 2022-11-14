@@ -1,9 +1,8 @@
 #ifndef SCENELEMENTS_H
 #define SCENELEMENTS_H
 
-#include <random>
 #include <glm/glm.hpp>
-
+#include <random>
 #include "Camera.hpp"
 #include "buffers.hpp"
 

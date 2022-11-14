@@ -30,6 +30,7 @@ find_library(IO_KIT_LIBRARY IOKit)
 # Source and external package files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(RES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
 set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 aux_source_directory(${SRC_DIR} SOURCES)
 set(GLFW_DIR "${EXT_DIR}/glfw")
@@ -71,8 +72,51 @@ target_link_libraries(${EXECUTABLE_NAME} freetype)
 target_include_directories(${EXECUTABLE_NAME} PRIVATE "${FREETYPE_DIR}/include")
 
 # imgui
+# set(IMGUI_DIR "${EXT_DIR}/imgui")
+# file(GLOB IMGUI_SRC "${IMGUI_DIR}/*.h" "${IMGUI_DIR}/*.cpp")
+# add_library("imgui" ${IMGUI_SRC})
+# set_property(TARGET "imgui" PROPERTY CXX_STANDARD 17)
+# target_include_directories("imgui" PRIVATE "${IMGUI_DIR}")
+# target_include_directories("imgui" PRIVATE "${IMGUI_DIR}/backends")
+# target_include_directories("imgui" PRIVATE "${GLFW_DIR}/include")
+# target_include_directories("imgui" PRIVATE "${GLAD_DIR}/include")
+
+# target_include_directories(${EXECUTABLE_NAME} PRIVATE "${EXT_DIR}")
+# target_include_directories(${EXECUTABLE_NAME} PRIVATE "${IMGUI_DIR}")
+# target_include_directories(${EXECUTABLE_NAME} PRIVATE "${IMGUI_DIR}/backends")
+# target_link_libraries(${EXECUTABLE_NAME} "imgui" "${CMAKE_DL_LIBS}")
+
 set(IMGUI_DIR "${EXT_DIR}/imgui")
-add_library("imgui" "${IMGUI_DIR}/imgui.cpp")
-target_include_directories("imgui" PRIVATE "${IMGUI_DIR}")
-target_include_directories(${EXECUTABLE_NAME} PRIVATE "${EXT_DIR}")
-target_link_libraries(${EXECUTABLE_NAME} "imgui" "${CMAKE_DL_LIBS}")
+add_library("imgui" STATIC)
+
+set_property(TARGET "imgui" PROPERTY CXX_STANDARD 17)
+target_sources( "imgui"
+                PRIVATE
+                    ${IMGUI_DIR}/imgui_demo.cpp
+                    ${IMGUI_DIR}/imgui_draw.cpp
+                    ${IMGUI_DIR}/imgui_tables.cpp
+                    ${IMGUI_DIR}/imgui_widgets.cpp
+                    ${IMGUI_DIR}/imgui.cpp
+
+                PRIVATE
+                    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+                    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+                )
+
+target_include_directories("imgui" PRIVATE "${GLFW_DIR}/include")
+target_include_directories("imgui" PRIVATE "${GLAD_DIR}/include")
+
+target_include_directories( "imgui"
+                            PUBLIC ${IMGUI_DIR}
+                            PUBLIC ${IMGUI_DIR}/backends
+                            PUBLIC ${IMGUI_DIR}/backends
+                            )
+
+find_package(OpenGL REQUIRED)
+target_link_libraries("imgui" PUBLIC ${OPENGL_LIBRARIES})
+# target_link_libraries("imgui" PUBLIC SDL2main SDL2 ${CMAKE_DL_LIBS})
+
+target_link_libraries(${EXECUTABLE_NAME} "imgui")
+
+# resource
+file(COPY ${RES_DIR} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

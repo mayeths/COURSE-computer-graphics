@@ -1,3 +1,4 @@
+#pragma once
 /** https://github.com/rxi/log.c
  * Copyright (c) 2020 rxi
  *
@@ -44,16 +45,14 @@ enum { LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL };
 #define log_error(...) log_log(LOG_ERROR, __FILENAME__, __LINE__, __VA_ARGS__)
 #define log_fatal(...) log_log(LOG_FATAL, __FILENAME__, __LINE__, __VA_ARGS__)
 
-const char* log_level_string(int level);
-void log_set_lock(log_LockFn fn, void *udata);
-void log_set_level(int level);
-void log_set_quiet(bool enable);
-int log_add_callback(log_LogFn fn, void *udata, int level);
-int log_add_fp(FILE *fp, int level);
+static const char* log_level_string(int level);
+static void log_set_lock(log_LockFn fn, void *udata);
+static void log_set_level(int level);
+static void log_set_quiet(bool enable);
+static int log_add_callback(log_LogFn fn, void *udata, int level);
+static int log_add_fp(FILE *fp, int level);
 
-void log_log(int level, const char *file, int line, const char *fmt, ...);
-
-#endif
+static void log_log(int level, const char *file, int line, const char *fmt, ...);
 
 /*
  * Copyright (c) 2020 rxi
@@ -140,28 +139,28 @@ static void unlock(void) {
 }
 
 
-const char* log_level_string(int level) {
+static const char* log_level_string(int level) {
   return level_strings[level];
 }
 
 
-void log_set_lock(log_LockFn fn, void *udata) {
+static void log_set_lock(log_LockFn fn, void *udata) {
   L.lock = fn;
   L.udata = udata;
 }
 
 
-void log_set_level(int level) {
+static void log_set_level(int level) {
   L.level = level;
 }
 
 
-void log_set_quiet(bool enable) {
+static void log_set_quiet(bool enable) {
   L.quiet = enable;
 }
 
 
-int log_add_callback(log_LogFn fn, void *udata, int level) {
+static int log_add_callback(log_LogFn fn, void *udata, int level) {
   for (int i = 0; i < MAX_CALLBACKS; i++) {
     if (!L.callbacks[i].fn) {
       L.callbacks[i] = (Callback) { fn, udata, level };
@@ -172,7 +171,7 @@ int log_add_callback(log_LogFn fn, void *udata, int level) {
 }
 
 
-int log_add_fp(FILE *fp, int level) {
+static int log_add_fp(FILE *fp, int level) {
   return log_add_callback(file_callback, fp, level);
 }
 
@@ -186,7 +185,7 @@ static void init_event(log_Event *ev, void *udata) {
 }
 
 
-void log_log(int level, const char *file, int line, const char *fmt, ...) {
+static void log_log(int level, const char *file, int line, const char *fmt, ...) {
   log_Event ev = {
     .fmt   = fmt,
     .file  = file,
@@ -216,3 +215,4 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
   unlock();
 }
 
+#endif

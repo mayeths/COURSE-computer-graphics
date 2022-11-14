@@ -1,3 +1,3 @@
 #include "drawableObject.hpp"
 
-sceneElements* drawableObject::scene = 0;
+sceneElements* drawableObject::scene = nullptr;
