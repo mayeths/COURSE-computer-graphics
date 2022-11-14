@@ -138,21 +138,25 @@ public:
             if (this->Zoom > 45.0f)
                 this->Zoom = 45.0f;
         }
-        return glm::perspective(glm::radians(this->Zoom), screenRatio, 0.1f, 100.0f);
+        float minDistanceToRender = 0.1f;
+        float maxDistanceToRender = 1000.0f;
+        return glm::perspective(glm::radians(this->Zoom), screenRatio, minDistanceToRender, maxDistanceToRender);
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaUpdateTime)
     {
         float move = MovementSpeed * deltaUpdateTime;
+        glm::vec3 frontInPlane = glm::normalize(glm::vec3(this->_Front.x, 0.0f, this->_Front.z));
+        glm::vec3 rightInPlane = glm::normalize(glm::vec3(this->_Right.x, 0.0f, this->_Right.z));
         if (direction == FORWARD)
-            this->Position += this->_Front * this->MoveForwardScale * move;
+            this->Position += frontInPlane * this->MoveForwardScale * move;
         if (direction == BACKWARD)
-            this->Position -= this->_Front * this->MoveForwardScale * move;
+            this->Position -= frontInPlane * this->MoveForwardScale * move;
         if (direction == LEFT)
-            this->Position -= this->_Right * this->MoveHorizontalScale * move;
+            this->Position -= rightInPlane * this->MoveHorizontalScale * move;
         if (direction == RIGHT)
-            this->Position += this->_Right * this->MoveHorizontalScale * move;
+            this->Position += rightInPlane * this->MoveHorizontalScale * move;
         if (direction == UP)
             this->Position += this->_WorldUp * this->MoveUpwardScale * move;
         if (direction == DOWN)
