@@ -183,10 +183,8 @@ int main() {
     ourShader.setInt("texture2", 1);
 
     Camera &camera = window.camera;
-    camera
-        .setPosition(glm::vec3(0.0f, 0.0f, 3.0f))
-        .setLookAtTarget(glm::vec3(-1.0f, 0.0f, -1.0f))
-    ;
+    camera.setPosition(glm::vec3(0.0f, 3.0f, 3.0f));
+    camera.setMaxRenderDistance(1e6f);
 
     Scene scene;
     SkyBox skybox;
@@ -197,8 +195,8 @@ int main() {
     skybox.SetSouthImagePath("assets/SkyBox/SkyBox2.bmp");
     skybox.SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90);
     skybox.SetBottomImagePath("assets/SkyBox/SkyBox5.bmp");
-    skybox.SetBoxWidth(50.0f);
-    skybox.MoveWith(glm::vec3(0.0f, +15.0f, 0.0f));
+    skybox.SetBoxWidth(1e5f);
+    skybox.MoveWith(glm::vec3(0.0f, 1e5f/2, 0.0f));
     skybox.Setup();
 
     // skybox.SetBoxWidth(100.0f);
@@ -207,19 +205,20 @@ int main() {
     gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
         ImGui::SetNextWindowPos(ImVec2(window.SCR_WIDTH-60, 0), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-        ImGui::Begin("FPS Stat", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
         ImGui::SameLine();
         ImGui::Text("%.0f FPS", 1 / (now - lastRenderTime));
         ImGui::End();
     });
     gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
-        ImGui::SetNextWindowPos(ImVec2(0, 32), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+        ImGui::SetNextWindowPos(ImVec2(0, 44), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
         ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-        ImGui::Begin("Position Stat", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Tips", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
         ImGui::Text("Position %2.0f %2.0f %2.0f",
             camera.Position[0], camera.Position[1], camera.Position[2]
         );
+        ImGui::Text("Press Tab to enter control mod");
         ImGui::End();
     });
 

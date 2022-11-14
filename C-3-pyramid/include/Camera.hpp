@@ -38,46 +38,34 @@ public:
     static inline const float INIT_MAXIMUM_ZOOM = 45.0f;
 
     // camera Attributes
-    glm::vec3 Position;
+    glm::vec3 Position = Camera::INIT_POSITION;
     // euler Angles
-    float Yaw;
-    float Pitch;
+    float Yaw = Camera::INIT_YAW;
+    float Pitch = Camera::INIT_PITCH;
     // camera options
-    float MovementSpeed;
-    float MoveForwardScale;
-    float MoveHorizontalScale;
-    float MoveUpwardScale;
-    float MouseSensitivity;
-    float Zoom;
-    float ZoomSpringiness;
-    float MinimumZoom;
-    float MaximumZoom;
+    float MovementSpeed = Camera::INIT_MOVEMENT_SPEED;
+    float MoveForwardScale = 1.4;
+    float MoveHorizontalScale = 1.0;
+    float MoveUpwardScale = 1.0;
+    float MouseSensitivity = Camera::INIT_MOUSE_SENSITIVITY;
+    float Zoom = Camera::INIT_ZOOM;
+    float ZoomSpringiness = Camera::INIT_ZOOM_SPRINGINESS;
+    float MinimumZoom = Camera::INIT_MINIMUM_ZOOM;
+    float MaximumZoom = Camera::INIT_MAXIMUM_ZOOM;
+    float MinRenderDistance = 0.1f;
+    float MaxRenderDistance = 1e6f;
     double LastScrollTime = -100000.0f;
     double LastScrollY = 0.0f;
 private:
-    glm::vec3 _Front;
+    glm::vec3 _Front = glm::normalize(Camera::INIT_FRONT);
     glm::vec3 _Up;
     glm::vec3 _Right;
-    glm::vec3 _WorldUp;
+    glm::vec3 _WorldUp = Camera::INIT_WORLD_UP;
 
 public:
     // constructor with vectors
     Camera(glm::vec3 initWorldUp = Camera::INIT_WORLD_UP)
     {
-        this->_WorldUp = initWorldUp;
-        this->_Front = glm::normalize(Camera::INIT_FRONT);
-        this->Position = Camera::INIT_POSITION;
-        this->MovementSpeed = Camera::INIT_MOVEMENT_SPEED;
-        this->MoveForwardScale = 1.4;
-        this->MoveHorizontalScale = 1.0;
-        this->MoveUpwardScale = 1.0;
-        this->MouseSensitivity = Camera::INIT_MOUSE_SENSITIVITY;
-        this->Yaw = Camera::INIT_YAW;
-        this->Pitch = Camera::INIT_PITCH;
-        this->Zoom = Camera::INIT_ZOOM;
-        this->ZoomSpringiness = Camera::INIT_ZOOM_SPRINGINESS;
-        this->MinimumZoom = Camera::INIT_MINIMUM_ZOOM;
-        this->MaximumZoom = Camera::INIT_MAXIMUM_ZOOM;
         this->updateCameraVectorsByEulerAngles();
     }
 
@@ -119,6 +107,16 @@ public:
         this->MouseSensitivity = newMouseSensitivity;
         return *this;
     }
+    Camera& setMinRenderDistance(float newMinRenderDistance)
+    {
+        this->MinRenderDistance = newMinRenderDistance;
+        return *this;
+    }
+    Camera& setMaxRenderDistance(float newMaxRenderDistance)
+    {
+        this->MaxRenderDistance = newMaxRenderDistance;
+        return *this;
+    }
 
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
@@ -138,9 +136,11 @@ public:
             if (this->Zoom > 45.0f)
                 this->Zoom = 45.0f;
         }
-        float minDistanceToRender = 0.1f;
-        float maxDistanceToRender = 1000.0f;
-        return glm::perspective(glm::radians(this->Zoom), screenRatio, minDistanceToRender, maxDistanceToRender);
+        return glm::perspective(
+            glm::radians(this->Zoom),
+            screenRatio,
+            this->MinRenderDistance, this->MaxRenderDistance
+        );
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
