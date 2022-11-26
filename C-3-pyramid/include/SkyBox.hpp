@@ -231,6 +231,6 @@ public:
         // glDisable(GL_CULL_FACE);
     }
 
-    virtual void GUIcallback(double deltaRenderTime) {}
+    virtual void GUIcallback(double lastRenderTime, double now) {}
 
 };

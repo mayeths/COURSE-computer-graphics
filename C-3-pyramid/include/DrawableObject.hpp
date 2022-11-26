@@ -12,7 +12,9 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-class DrawableObject
+#include "Object/BaseObject.hpp"
+
+class DrawableObject : public BaseObject
 {
    public:
     glm::vec3 position     = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -53,9 +55,15 @@ class DrawableObject
         return model;
     }
 
+
+    virtual const char *GetObjectTypeName()
+    {
+        return "DrawableObject";
+    }
+
     // if the class will cointain some logic, so it must be refreshed at each game loop cycle by calling update.
     // Otherwise just don't override it.
     virtual void update(double now, double deltaUpdateTime){};
     virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection) = 0;
-    virtual void GUIcallback(double deltaRenderTime){};
+    virtual void GUIcallback(double lastRenderTime, double now){};
 };

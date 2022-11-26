@@ -21,6 +21,7 @@
 #include "GUI.hpp"
 #include "Shader.hpp"
 #include "SkyBox.hpp"
+#include "Terrian.hpp"
 
 int main() {
     GLint success = 0;
@@ -31,6 +32,7 @@ int main() {
     }
 
     Shader ourShader("assets/6.2.coordinate_systems.vs", "assets/6.2.coordinate_systems.fs");
+    ourShader.Setup();
 #define scale 1.0f
     GLfloat vertices[] = {
         /** OpenGL is Right-handed system
@@ -199,7 +201,16 @@ int main() {
     skybox.MoveWith(glm::vec3(0.0f, 1e5f/2, 0.0f));
     skybox.Setup();
 
-    // skybox.SetBoxWidth(100.0f);
+    Terrian terrian;
+    terrian.SetShaderPath(
+        "assets/8.3.gpuheight.vs", "assets/8.3.gpuheight.fs",
+        "assets/8.3.gpuheight.tcs", "assets/8.3.gpuheight.tes"
+    );
+    // terrian.SetHeightMapPath("assets/textures/iceland_heightmap.png");
+    terrian.SetHeightMapPath("assets/TerrianHW/heightmap.bmp");
+    terrian.SetTexturePath("assets/TerrianHW/terrain-texture3.bmp");
+    terrian.MoveWith(glm::vec3(0.0f, -3.0f, 0.0f));
+    terrian.Setup();
 
     GUI gui(window);
     gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
@@ -221,6 +232,9 @@ int main() {
         ImGui::Text("Press Tab to enter control mod");
         ImGui::End();
     });
+    gui.subscribe(&terrian);
+
+    window.AddObject(&terrian);
 
     double now;
     double lastUpdateTime = 0;
@@ -235,6 +249,7 @@ int main() {
         ////// logic update
         window.processInput(deltaUpdateTime, deltaRenderTime);
         skybox.update(now, deltaUpdateTime);
+        terrian.update(now, deltaUpdateTime);
         gui.update();
 
         ////// frame render
@@ -263,6 +278,7 @@ int main() {
         }
 
         skybox.render(now, deltaRenderTime, view, projection);
+        terrian.render(now, deltaRenderTime, view, projection);
         gui.render(window.w, lastRenderTime, now);
 
         window.swapBuffersAndPollEvents();

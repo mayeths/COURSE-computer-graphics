@@ -52,7 +52,7 @@ public:
     {
         double deltaRenderTime = now - lastRenderTime;
         for (int i = 0; i < subs.size(); i++) {
-            subs[i]->GUIcallback(deltaRenderTime);
+            subs[i]->GUIcallback(lastRenderTime, now);
         }
         for (int i = 0; i < this->callbacks.size(); i++) {
             this->callbacks[i](window, lastRenderTime, now);

@@ -6,7 +6,12 @@
 
 #include <string>
 #include <map>
+#include <vector>
+#include <queue>
 
+#include "Object/BaseObject.hpp"
+#include "Object/CallableObject.hpp"
+#include "Object/KeyboardListenerObject.hpp"
 #include "log.h"
 #include "Camera.hpp"
 
@@ -43,6 +48,12 @@ public:
     // typedef void (*KeyCallback)(GLFWwindow* window, double xpos, double ypos, float updateTime, float renderTime);
     // std::map<int, KeyCallback> inputCallback;
 
+    std::vector<CallableObject *> callables;
+    std::map<
+        int,
+        std::priority_queue<std::pair<KeyboardListenerPriority, KeyboardListenerObject *>>
+    > keyboardListeners;
+
 public:
     // initializer
     Window(int *success, std::string name = "Mayeths' Terrain Engine", uint32_t scrW = 1600, uint32_t scrH = 900) : camera(Camera::INIT_WORLD_UP)
@@ -73,9 +84,13 @@ public:
 
         *success = gladLoader() && *success;
         if (*success) {
-            log_debug("GLFW window correctly initialized");
+            Window::printInfomation();
+            log_debug("GLFW window initialized");
+        } else {
+            log_fatal("Cannot initialize GLFW window");
+            glfwTerminate();
+            return;
         }
-        Window::printInfomation();
 
         glfwSetFramebufferSizeCallback(this->w, &Window::framebuffer_size_callback);
         glfwSetCursorPosCallback(this->w, &Window::mouse_callback);
@@ -93,6 +108,19 @@ public:
     ~Window()
     {
         this->terminate();
+    }
+
+    void AddObject(BaseObject *object)
+    {
+        KeyboardListenerObject *klistener = dynamic_cast<KeyboardListenerObject *>(object);
+        if (klistener != nullptr) {
+            const std::map<int, KeyboardListenerPriority> kreg = klistener->KeyboardRegister();
+            for (auto const& x : kreg) {
+                int key = x.first;
+                KeyboardListenerPriority priority = x.second;
+                this->keyboardListeners[key].push(std::make_pair(priority, klistener));
+            }
+        }
     }
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
@@ -205,9 +233,13 @@ public:
         glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
         log_debug("OpenGL version: %d.%d.%d", GLmajor, GLminor, GLrev);
 
-        int major, minor, rev;
+        int major = 0, minor = 0, rev = 0;
         glfwGetVersion(&major, &minor, &rev);
         log_debug("GLFW version: %d.%d.%d", major, minor, rev);
+
+        GLint maxTessLevel = 0;
+        glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
+        log_debug("Max available tess level: %d", maxTessLevel);
     }
 
 };

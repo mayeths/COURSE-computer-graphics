@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "Object/KeyboardListenerObject.hpp"
+
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
     FORWARD,
@@ -17,7 +19,7 @@ enum Camera_Movement {
 };
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
-class Camera
+class Camera : KeyboardListenerObject
 {
 public:
     // Default camera values
@@ -28,7 +30,7 @@ public:
     static inline const glm::vec3 INIT_POSITION = Camera::ORIGIN;
     static inline const glm::vec3 INIT_FRONT = Camera::INIT_POSITION - Camera::BASE_Z;
     static inline const glm::vec3 INIT_WORLD_UP = Camera::BASE_Y;
-    static inline const float INIT_MOVEMENT_SPEED =  10.0f;
+    static inline const float INIT_MOVEMENT_SPEED =  100.0f;
     static inline const float INIT_MOUSE_SENSITIVITY =  0.08f;
     static inline const float INIT_ZOOM =  45.0f;
     static inline const float INIT_YAW = -90.0f;
@@ -192,6 +194,25 @@ public:
         double maximumY = 5.0f;
         this->LastScrollY = yoffset / maximumY; /* G102 is 3.0f */
         this->LastScrollTime = glfwGetTime();
+    }
+
+    virtual std::map<int, KeyboardListenerPriority> KeyboardRegister()
+    {
+        return {
+            {GLFW_KEY_W, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_S, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_A, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_D, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_SPACE, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_LEFT_CONTROL, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_RIGHT_CONTROL, KEY_NORMAL_PRIORITY},
+        };
+    }
+
+
+    virtual bool KeyboardCallback(int key, int state)
+    {
+        return false;
     }
 
 private:
