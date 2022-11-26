@@ -24,6 +24,8 @@ public:
     GLFWwindow* w;
     Camera camera;
     bool firstMouse = true;
+    bool keyTabStillPressing = false;
+    bool inGodMod = false;
     // float yaw   = -90.0f;
     // float pitch =  0.0f;
     float mouseLastX =  800.0f / 2.0;
@@ -125,6 +127,21 @@ public:
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
+        bool keyTab = glfwGetKey(this->w, GLFW_KEY_TAB) == GLFW_PRESS;
+        if (keyTab) {
+            if (!this->keyTabStillPressing) {
+                this->inGodMod = !this->inGodMod;
+                int cursorMode = this->inGodMod ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+                glfwSetInputMode(this->w, GLFW_CURSOR, cursorMode);
+                this->keyTabStillPressing = true;
+            }
+        } else {
+            this->keyTabStillPressing = false;
+        }
+        if (this->inGodMod) {
+            return;
+        }
+
         bool keyW = glfwGetKey(this->w, GLFW_KEY_W) == GLFW_PRESS;
         bool keyS = glfwGetKey(this->w, GLFW_KEY_S) == GLFW_PRESS;
         bool keyA = glfwGetKey(this->w, GLFW_KEY_A) == GLFW_PRESS;
@@ -175,6 +192,8 @@ public:
     static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     {
         Window *self = (Window *)glfwGetWindowUserPointer(window);
+        if (self->inGodMod)
+            return;
         float xpos = static_cast<float>(xposIn);
         float ypos = static_cast<float>(yposIn);
 
@@ -212,6 +231,8 @@ public:
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     {
         Window *self = (Window *)glfwGetWindowUserPointer(window);
+        if (self->inGodMod)
+            return;
         self->camera.ProcessMouseScroll(static_cast<float>(yoffset));
         // double maximumYOffset = 5.0f;
         // self->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */

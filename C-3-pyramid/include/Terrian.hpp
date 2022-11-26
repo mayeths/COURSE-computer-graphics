@@ -17,7 +17,7 @@ public:
     GLuint textureID = 0;
     GLuint VAO = 0, VBO = 0;
     int width, height;
-    bool polygonMode = true;
+    bool polygonMode = false;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath, const std::string tessControlPath, const std::string tessEvalPath)
     {

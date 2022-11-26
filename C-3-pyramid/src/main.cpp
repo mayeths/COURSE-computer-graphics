@@ -185,7 +185,7 @@ int main() {
     ourShader.setInt("texture2", 1);
 
     Camera &camera = window.camera;
-    camera.setPosition(glm::vec3(0.0f, 3.0f, 3.0f));
+    camera.setPosition(glm::vec3(0.0f, 10.0f, 200.0f));
     camera.setMaxRenderDistance(1e6f);
 
     Scene scene;
@@ -209,7 +209,7 @@ int main() {
     // terrian.SetHeightMapPath("assets/textures/iceland_heightmap.png");
     terrian.SetHeightMapPath("assets/TerrianHW/heightmap.bmp");
     terrian.SetTexturePath("assets/TerrianHW/terrain-texture3.bmp");
-    terrian.MoveWith(glm::vec3(0.0f, -3.0f, 0.0f));
+    terrian.MoveWith(glm::vec3(0.0f, -2.0f, 0.0f));
     terrian.Setup();
 
     GUI gui(window);
@@ -229,7 +229,7 @@ int main() {
         ImGui::Text("Position %2.0f %2.0f %2.0f",
             camera.Position[0], camera.Position[1], camera.Position[2]
         );
-        ImGui::Text("Press Tab to enter control mod");
+        ImGui::Text("Press Tab to enter god mod");
         ImGui::End();
     });
     gui.subscribe(&terrian);
