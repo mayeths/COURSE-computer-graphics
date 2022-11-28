@@ -11,6 +11,8 @@ void main()
 {
     float h = (Height + 16)/64.0f;
     vec2 TerrianTexCoord2D = vec2(TerrianTexCoord.x, TerrianTexCoord.y);
+    if (Height < 2.0)
+		discard;
     FragColor = texture(texture_terrianID, TerrianTexCoord2D);
     // FragColor = vec4(h, h, h, 1.0);
 }

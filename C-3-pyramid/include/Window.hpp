@@ -127,6 +127,18 @@ public:
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
+        for (auto const &x : this->keyboardListeners) {
+            int const &key = x.first;
+            auto const &queue = x.second;
+            if (queue.size() == 0)
+                continue;
+            // for (auto const &y : queue) {
+            //     KeyboardListenerPriority priority = y.first;
+            //     KeyboardListenerObject *object = y.second;
+            // }
+        }
+
+
         bool keyTab = glfwGetKey(this->w, GLFW_KEY_TAB) == GLFW_PRESS;
         if (keyTab) {
             if (!this->keyTabStillPressing) {
