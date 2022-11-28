@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <queue>
+#include <limits>
 
 #include "Object/BaseObject.hpp"
 #include "Object/CallableObject.hpp"
@@ -26,35 +27,25 @@ public:
     bool firstMouse = true;
     bool keyTabStillPressing = false;
     bool inGodMod = false;
-    // float yaw   = -90.0f;
-    // float pitch =  0.0f;
     float mouseLastX =  800.0f / 2.0;
     float mouseLastY =  600.0 / 2.0;
-    // float mouseSensitivity = 0.05f;
-    // float cameraSpeedScale = 5.0f;
-    // double lastScrollPollTime = -100000.0f;
-    // double lastScrollPollYOffset = 0.0f;
-    // const glm::vec3 worldNormal = glm::vec3(0.0f, 1.0f, 0.0f); // 法线（定义世界的上）
-    // glm::vec3 cameraPos;
-    // glm::vec3 cameraFront;
-    // glm::vec3 cameraUp;
-    // glm::vec3 direction;
-    // glm::mat4 view;
 
-    // struct KeyCallbackParam {
-    //     Window *window;
-    //     int type;
-    //     double deltaUpdateTime;
-    //     double deltaRenderTime;
-    // };
-    // typedef void (*KeyCallback)(GLFWwindow* window, double xpos, double ypos, float updateTime, float renderTime);
-    // std::map<int, KeyCallback> inputCallback;
+    bool enableInputListening = true;
+    class KeyboardQueues {
+        public:
+        std::deque<std::pair<KeyPriority, KeyboardListenerObject *>> keyDownListenner;
+        std::deque<std::pair<KeyPriority, KeyboardListenerObject *>> keyUpListenner;
+        std::deque<std::pair<KeyPriority, KeyboardListenerObject *>> keyPressListenner;
+    };
+    std::map<int, KeyboardQueues> keyboardListeners;
+    bool enableKeyListening = true;
+
+    std::vector<KeyState> keystate1;
+    std::vector<KeyState> keystate2;
+    std::vector<KeyState> *keystate = &keystate1;
+    std::vector<KeyState> *old_keystate = &keystate2;
 
     std::vector<CallableObject *> callables;
-    std::map<
-        int,
-        std::priority_queue<std::pair<KeyboardListenerPriority, KeyboardListenerObject *>>
-    > keyboardListeners;
 
 public:
     // initializer
@@ -69,6 +60,8 @@ public:
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);                // comment this line in a release build!
+        this->keystate1.resize(1024, KeyState::STATE_RELEASE);
+        this->keystate2.resize(1024, KeyState::STATE_RELEASE);
 
         // glfwWindowHint(GLFW_SAMPLES, 4);
         // glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
@@ -95,6 +88,8 @@ public:
         }
 
         glfwSetFramebufferSizeCallback(this->w, &Window::framebuffer_size_callback);
+        glfwSetWindowFocusCallback(this->w, &Window::focus_callback);
+	    glfwSetKeyCallback(this->w, &Window::keyboard_callback);
         glfwSetCursorPosCallback(this->w, &Window::mouse_callback);
         glfwSetScrollCallback(this->w, &Window::scroll_callback);
         glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -116,27 +111,54 @@ public:
     {
         KeyboardListenerObject *klistener = dynamic_cast<KeyboardListenerObject *>(object);
         if (klistener != nullptr) {
-            const std::map<int, KeyboardListenerPriority> kreg = klistener->KeyboardRegister();
+            const std::map<int, KeyPriority> kreg = klistener->KeyboardRegister();
             for (auto const& x : kreg) {
                 int key = x.first;
-                KeyboardListenerPriority priority = x.second;
-                this->keyboardListeners[key].push(std::make_pair(priority, klistener));
+                KeyPriority priority = x.second;
+                // this->keyboardListeners[key].push(std::make_pair(priority, klistener));
             }
         }
     }
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
-        for (auto const &x : this->keyboardListeners) {
-            int const &key = x.first;
-            auto const &queue = x.second;
-            if (queue.size() == 0)
-                continue;
-            // for (auto const &y : queue) {
-            //     KeyboardListenerPriority priority = y.first;
-            //     KeyboardListenerObject *object = y.second;
-            // }
+        // for (auto const &x : this->keyboardListeners) {
+        //     int const &key = x.first;
+        //     auto const &queue = x.second;
+        //     if (queue.size() == 0)
+        //         continue;
+        //     // for (auto const &y : queue) {
+        //     //     KeyPriority priority = y.first;
+        //     //     KeyboardListenerObject *object = y.second;
+        //     // }
+        // }
+
+        for (auto const &x : keyboardListeners) {
+            const int &key = x.first;
+            const auto &queues = x.second;
+            const KeyState state = (*keystate)[key];
+            const KeyState old_state = (*old_keystate)[key];
+            if (old_state == KeyState::STATE_RELEASE && state == KeyState::STATE_PRESS) {
+                const KeyEvent event = KeyEvent::KEY_DOWN;
+                for (auto const &y : queues.keyDownListenner) {
+                    KeyPriority priority = y.first;
+                    KeyboardListenerObject *object = y.second;
+                    object->KeyboardCallback(key, event);
+                }
+            } else if (old_state == KeyState::STATE_PRESS && state == KeyState::STATE_RELEASE) {
+                for (auto const &y : queues.keyUpListenner) {
+                    KeyPriority priority = y.first;
+                    KeyboardListenerObject *object = y.second;
+                    object->KeyboardCallback(key, KeyEvent::KEY_UP);
+                }
+                for (auto const &y : queues.keyPressListenner) {
+                    KeyPriority priority = y.first;
+                    KeyboardListenerObject *object = y.second;
+                    object->KeyboardCallback(key, KeyEvent::KEY_PRESS);
+                }
+            }
         }
+        std::swap(keystate, old_keystate);
 
 
         bool keyTab = glfwGetKey(this->w, GLFW_KEY_TAB) == GLFW_PRESS;
@@ -249,6 +271,24 @@ public:
         // double maximumYOffset = 5.0f;
         // self->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
         // self->lastScrollPollTime = glfwGetTime();
+    }
+
+    static void focus_callback(GLFWwindow* window, int focused)
+    {
+        Window *self = (Window *)glfwGetWindowUserPointer(window);
+        if (focused) {
+            self->enableKeyListening = true;
+        } else {
+            std::fill((*self->keystate).begin(), (*self->keystate).end(), KeyState::STATE_RELEASE);
+            self->enableKeyListening = false;
+        }
+    }
+
+    static void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+        Window *self = (Window *)glfwGetWindowUserPointer(window);
+        if (!self->enableKeyListening)
+            return;
+        (*self->keystate)[key] = action == GLFW_PRESS ? KeyState::STATE_PRESS : KeyState::STATE_RELEASE;
     }
 
     // put this at the end of the main

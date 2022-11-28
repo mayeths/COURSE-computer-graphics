@@ -196,21 +196,21 @@ public:
         this->LastScrollTime = glfwGetTime();
     }
 
-    virtual std::map<int, KeyboardListenerPriority> KeyboardRegister()
+    virtual std::map<int, KeyPriority> KeyboardRegister()
     {
         return {
-            {GLFW_KEY_W, KEY_NORMAL_PRIORITY},
-            {GLFW_KEY_S, KEY_NORMAL_PRIORITY},
-            {GLFW_KEY_A, KEY_NORMAL_PRIORITY},
-            {GLFW_KEY_D, KEY_NORMAL_PRIORITY},
-            {GLFW_KEY_SPACE, KEY_NORMAL_PRIORITY},
-            {GLFW_KEY_LEFT_CONTROL, KEY_NORMAL_PRIORITY},
-            {GLFW_KEY_RIGHT_CONTROL, KEY_NORMAL_PRIORITY},
+            {GLFW_KEY_W, KeyPriority::Normal()},
+            {GLFW_KEY_S, KeyPriority::Normal()},
+            {GLFW_KEY_A, KeyPriority::Normal()},
+            {GLFW_KEY_D, KeyPriority::Normal()},
+            {GLFW_KEY_SPACE, KeyPriority::Normal()},
+            {GLFW_KEY_LEFT_CONTROL, KeyPriority::Normal()},
+            {GLFW_KEY_RIGHT_CONTROL, KeyPriority::Normal()},
         };
     }
 
 
-    virtual bool KeyboardCallback(int key, int state)
+    virtual bool KeyboardCallback(int key, KeyEvent event)
     {
         return false;
     }
