@@ -7,15 +7,17 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include "shader.h"
+#include "texture.h"
 
 class Floor {
 private:
 
 	GLuint VBO, VAO;
 	Shader *shader;
-
 public:
-	Floor();
+	CTexture texture;
+	float y;
+	Floor(float floorY = -3.0f);
 
 	~Floor();
 

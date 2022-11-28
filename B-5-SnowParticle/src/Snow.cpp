@@ -74,20 +74,21 @@ namespace Snow {
 	}
 
 	void Snow::Render(float frametimeMills, glm::mat4& worldMatrix,
-		glm::mat4 viewMatrix, glm::mat4& projectMatrix)
+		glm::mat4 viewMatrix, glm::mat4& projectMatrix, float floorY)
 	{
 		mTimer += frametimeMills*1000.0f;
-		UpdateParticles(frametimeMills*1000.0f);
+		UpdateParticles(frametimeMills*1000.0f, floorY);
 		RenderParticles(worldMatrix, viewMatrix, projectMatrix);
 		mCurVBOIndex = mCurTransformFeedbackIndex;
 		mCurTransformFeedbackIndex = (mCurTransformFeedbackIndex + 1) & 0x1;
 	}
 
-	void Snow::UpdateParticles(float frametimeMills)
+	void Snow::UpdateParticles(float frametimeMills, float floorY)
 	{
 		mUpdateShader->use();
 		mUpdateShader->setFloat("gDeltaTimeMillis", frametimeMills);
 		mUpdateShader->setFloat("gTime", mTimer);
+		mUpdateShader->setFloat("floorY", floorY);
 		//∞Û∂®Œ∆¿Ì
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_1D, mRandomTexture);

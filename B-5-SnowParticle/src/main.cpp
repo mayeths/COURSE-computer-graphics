@@ -53,10 +53,12 @@ int main(){
 	glfwSetCursorPosCallback(window,mouse_callback);
 	glfwSetScrollCallback(window,scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-//    Floor floor;
+    Floor floor;
 	Snow::Snow snow;
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	while(!glfwWindowShouldClose(window)){
 		glfwPollEvents();
@@ -69,8 +71,12 @@ int main(){
 		glm::mat4 model(1.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		projection = glm::perspective(glm::radians(45.0f),screenWidth/screenHeight,0.1f,2000.f);
-        // floor.render(model,view,projection);
-		snow.Render(deltaTime,model,view,projection);
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, position);
+            floor.render(model,view,projection);
+        }
+		snow.Render(deltaTime,model,view,projection, floor.y);
 
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;

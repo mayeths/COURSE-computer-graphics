@@ -52,10 +52,10 @@ namespace Snow {
 	public:
 		Snow();
 		~Snow();
-		void Render(float frametimeMills, glm::mat4& worldMatrix, glm::mat4 viewMatrix, glm::mat4& projectMatrix);
+		void Render(float frametimeMills, glm::mat4& worldMatrix, glm::mat4 viewMatrix, glm::mat4& projectMatrix, float floorY);
 	private:
 		bool InitSnow();
-		void UpdateParticles(float frametimeMills);//更新粒子的位置等
+		void UpdateParticles(float frametimeMills, float floorY);//更新粒子的位置等
 		void InitRandomTexture(unsigned int size);//生成1维随机纹理
 		void RenderParticles(glm::mat4& worldMatrix, glm::mat4& viewMatrix, glm::mat4& projectMatrix);
 		void GenInitLocation(SnowParticle partciles[], int nums);//生成初始粒子

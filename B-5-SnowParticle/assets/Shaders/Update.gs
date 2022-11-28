@@ -24,6 +24,7 @@ uniform vec3 MIN_VELOC;
 uniform float MAX_LAUNCH;
 uniform float MIN_LAUNCH;
 uniform mat4 view;
+uniform float floorY;
 
 #define PARTICLE_TYPE_LAUNCHER 0.0f
 #define PARTICLE_TYPE_SHELL 1.0f
@@ -58,7 +59,7 @@ void main()
         EndPrimitive();
       }
     else{
-        if(Position0[0].y > 0){
+        if(Position0[0].y > floorY){
             float DeltaTimeSecs = gDeltaTimeMillis/1000.0f;
             vec3 DeltaP = Velocity0[0]*DeltaTimeSecs;
             vec3 DeltaV = DeltaTimeSecs*vec3(3.0,-3.81,0.0);
