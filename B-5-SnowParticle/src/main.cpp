@@ -1,153 +1,122 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Shader.hpp"
 #include "log.h"
 #include "GUI.hpp"
+#include "Camera.h"
+#include "Snow.h"
+#include "floor.h"
 
 #include <iostream>
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window,int key, int scancode,int action,int mode);
+void do_movement();
+void mouse_callback(GLFWwindow* window,double xpos,double ypos);
+void scroll_callback(GLFWwindow* window,double xoffset,double yoffset);
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-bool openTab = true;
+GLfloat screenWidth = 1600;
+GLfloat screenHeight = 1000;
+Camera::Camera camera(glm::vec3(0.0f,0.0f,0.0f));
+bool keys[1024];
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
+GLfloat lastX = 400,lastY = 300;
+bool firstMouse = true;
+string str_fps;
+char c[8];
+int FrameRate = 0;
+int FrameCount = 0;
+int timeLeft = 0;
 
-int main()
-{
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+int main(){
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "SimpleTriangle", NULL, NULL);
-    if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+	GLFWwindow* window = glfwCreateWindow(screenWidth,screenHeight,"Learn OpenGL",NULL,NULL);
+	if(window == NULL){
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    Shader shader("./assets/shader.vs", "./assets/shader.fs");
-    shader.Setup();
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window,mouse_callback);
+	glfwSetScrollCallback(window,scroll_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//    Floor floor;
+	Snow::Snow snow;
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
-    float vertices[] = {
-        // positions
-         0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f,
-    };
+	while(!glfwWindowShouldClose(window)){
+		glfwPollEvents();
+		do_movement();
+		//render
+		glClearColor(0.0,0.0,0.0,1.0);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	
+		glm::mat4 projection(1.0f);
+		glm::mat4 model(1.0f);
+		glm::mat4 view = camera.GetViewMatrix();
+		projection = glm::perspective(glm::radians(45.0f),screenWidth/screenHeight,0.1f,2000.f);
+        // floor.render(model,view,projection);
+		snow.Render(deltaTime,model,view,projection);
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+	glfwTerminate();
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    GUI gui(window);
-    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
-        ImGui::SetNextWindowPos(ImVec2(SCR_WIDTH-60, 0), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-        ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-        ImGui::SameLine();
-        ImGui::Text("%.0f FPS", 1 / (now - lastRenderTime));
-        ImGui::End();
-    });
-    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
-        ImGui::SetNextWindowPos(ImVec2(0, 30), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
-        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-        ImGui::Begin("Tips", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-        ImGui::Text("Right click to open/close color picker");
-        ImGui::End();
-    });
-
-    ImVec4 rgb(0.23f, 1.0f, 1.0f, 1.0f);
-
-    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
-        if (openTab) {
-            ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-            ImGui::Begin("Color Picker");
-            ImGui::Spacing();
-            ImGui::ColorEdit4("RGB", (float*)&rgb, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Float);
-            ImGui::DragFloat4("Raw RGB values", (float*)&rgb, 0.23f, 1.0f, 1.0f);
-            glm::vec4 color(rgb.x, rgb.y, rgb.z, rgb.w);
-            shader.setVec4("color", color);
-            ImGui::End();
-        }
-    });
-
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    float screenRatio = (float)SCR_WIDTH / (float)SCR_HEIGHT;
-
-    double now;
-    double lastUpdateTime = 0;
-    double lastRenderTime = 0;
-    while (!glfwWindowShouldClose(window)) {
-        lastRenderTime = now;
-        lastUpdateTime = now;
-        now = glfwGetTime();
-        double deltaUpdateTime = now - lastUpdateTime;
-        double deltaRenderTime = now - lastRenderTime;
-
-        // logic
-        processInput(window);
-        gui.update();
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, position);
-            model = glm::rotate(model, (float)(now), glm::vec3(0.0f, 0.0f, -1.0f));
-            shader.setMat4("model", model);
-        }
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), screenRatio, 0.1f, 100.0f);
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
-
-        //render
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        shader.use();
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        gui.render(window, lastRenderTime, now);
-
-        // misc
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-
-    glfwTerminate();
-    return 0;
+	return 0;
 }
 
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window,GL_TRUE);
+	if(action == GLFW_PRESS)
+		keys[key] = true;
+	else if(action == GLFW_RELEASE)
+		keys[key] = false;
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-        openTab = !openTab;
-    }
+void do_movement(){
+	GLfloat cameraSpeed = 5.0f*deltaTime;
+	if(keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(Camera::FORWARD,deltaTime);
+	if(keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(Camera::BACKWARD,deltaTime);
+	if(keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(Camera::LEFTS,deltaTime);
+	if(keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(Camera::RIGHTS,deltaTime);
+}
+
+void mouse_callback(GLFWwindow* window,double xpos,double ypos){
+	if(firstMouse){
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+	camera.ProcessMouseMovement(xoffset,yoffset);
+}
+
+void scroll_callback(GLFWwindow* window,double xoffset,double yoffset){
+	camera.ProcessMouseScroll(yoffset);
 }
