@@ -1,20 +1,20 @@
-#version 330 core 
-layout (location = 0) in float Type;
-layout (location = 1) in vec3 Position;
-layout (location = 2) in vec3 Velocity;
-layout (location = 3) in float Age;
-layout (location = 4) in float size;
-out float Type0;
-out vec3 Position0;
-out vec3 Velocity0;
-out float Age0;
-out float Size0;
+#version 330 core
+layout (location = 0) in float init_type;
+layout (location = 1) in vec3 init_position;
+layout (location = 2) in vec3 init_velocity;
+layout (location = 3) in float init_age;
+layout (location = 4) in float init_size;
 
-void main()
-{
-	Type0 = Type;
-	Position0 = Position;
-	Velocity0 = Velocity;
-	Age0 = Age;
-    Size0 = size;
+out float type_0;
+out vec3 position_0;
+out vec3 velocity_0;
+out float age_0;
+out float size_0;
+
+void main() {
+    type_0 = init_type;
+    position_0 = init_position;
+    velocity_0 = init_velocity;
+    age_0 = init_age;
+    size_0 = init_size;
 }

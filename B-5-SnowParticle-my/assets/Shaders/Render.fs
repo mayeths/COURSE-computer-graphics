@@ -1,15 +1,13 @@
-#version 330 
+#version 330 core
 
 in vec3 pos;
+
 out vec4 color;
+
 uniform sampler2D flankTextureID;
 
-void main()
-{
+void main() {
     vec4 texColor = texture(flankTextureID, gl_PointCoord);
-	texColor.a = texColor.a;
-    //if(texColor.r < 0.3)discard;
-    //color = texColor;
-    //color = vec4(1.0f,1.0f,1.0f,texColor.a);
-	color = texColor;
+    texColor.a = texColor.a;
+    color = texColor;
 }

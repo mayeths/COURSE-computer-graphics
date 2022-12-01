@@ -11,20 +11,20 @@
 #include "random.h"
 #include "log.h"
 
-#define PARTICLE_TYPE_LAUNCHER 0.0f // See shader
+#define PARTICLE_TYPE_BASE 0.0f // See shader update.gs
 
 struct SnowParticle {
-    float type = PARTICLE_TYPE_LAUNCHER;
+    float type = PARTICLE_TYPE_BASE;
     glm::vec3 position = glm::vec3(0, 0, 0);
     glm::vec3 velocity = glm::vec3(0, 0, 0);
-    float lifetimeMills = 0;
+    float age = 0;
     float size = 0;
 };
 
 class SnowSystem : public DrawableObject
 {
-    static inline const GLfloat MAX_VELOCITY = 3.0;
-    static inline const GLfloat MIN_VELOCITY = 1.0;
+    static inline const GLfloat MAX_VELOCITY = 50.0;
+    static inline const GLfloat MIN_VELOCITY = 10.0;
     static inline const GLfloat MAX_LAUNCH = 1.0f * 1000.0f;
     static inline const GLfloat MIN_LAUNCH = 0.5f * 1000.0f;
     static inline const GLfloat INIT_SNOW_SIZE = 10.0f;
@@ -90,7 +90,7 @@ public:
 
         std::vector<SnowParticle> particles(MAX_NUM_PARTICLES);
         for (int i = 0; i < INIT_NUM_PARTICLES; i++) {
-            particles[i].type = PARTICLE_TYPE_LAUNCHER;
+            particles[i].type = PARTICLE_TYPE_BASE;
             particles[i].position = glm::vec3(
                 randf32(-SNOWING_AREA_WIDTH, SNOWING_AREA_WIDTH),
                 randf32(LOWEST_ALIVE_Y, HIGHEST_ALIVE_Y),
@@ -98,7 +98,7 @@ public:
             );
             particles[i].velocity = glm::vec3(0, randf32(MIN_VELOCITY, MAX_VELOCITY), 0);
             particles[i].size = INIT_SNOW_SIZE;
-            particles[i].lifetimeMills = randf32(0.1, 0.6);
+            particles[i].age = randf32(0.1, 0.6);
         }
 
         glGenTransformFeedbacks(2, this->TFO);
@@ -114,7 +114,7 @@ public:
         glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
         glBindVertexArray(0);
         updateShader.use();
-        updateShader.setInt("gRandomTexture", 0);
+        updateShader.setInt("randomTextureID", 0);
         updateShader.setFloat("MAX_SIZE", MAX_SIZE);
         updateShader.setFloat("MIN_SIZE", MIN_SIZE);
         updateShader.setFloat("MAX_LAUNCH", MAX_LAUNCH);
@@ -143,7 +143,7 @@ public:
         glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, type));
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, position));
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, velocity));
-        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, lifetimeMills));
+        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, age));
         glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, size));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
@@ -171,9 +171,9 @@ public:
 
     virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection)
     {
+        glDisable(GL_DEPTH_TEST);
         glEnable(GL_POINT_SPRITE);
         glEnable(GL_PROGRAM_POINT_SIZE);
-        glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -181,6 +181,8 @@ public:
         renderShader.setMat4("model", glm::mat4(1.0f));
         renderShader.setMat4("view", view);
         renderShader.setMat4("projection", projection);
+
+        glBindVertexArray(this->PAO[this->renderIndex]);
         glBindBuffer(GL_ARRAY_BUFFER, this->PBO[this->renderIndex]);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, position));
         glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, size));

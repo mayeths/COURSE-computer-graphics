@@ -1,87 +1,87 @@
 #version 330 core
-layout (points) in;
-layout (points,max_vertices = 10) out;
-
-in float Type0[];
-in vec3 Position0[];
-in vec3 Velocity0[];
-in float Age0[];
-in float Size0[];
-
-out float Type1;
-out vec3 Position1;
-out vec3 Velocity1;
-out float Age1;
-out float Size1;
+/* build_house https://learnopengl-cn.readthedocs.io/zh/latest/04%20Advanced%20OpenGL/09%20Geometry%20Shader/ */
+layout(points) in;
+layout(points, max_vertices = 10) out;
 
 uniform float deltaUpdateTime;
 uniform float now;
-uniform sampler1D gRandomTexture;
 uniform float MAX_SIZE;
 uniform float MIN_SIZE;
-uniform vec3 MAX_VELOC;
-uniform vec3 MIN_VELOC;
 uniform float MAX_LAUNCH;
 uniform float MIN_LAUNCH;
-uniform mat4 view;
 uniform float LOWEST_ALIVE_Y;
+uniform sampler1D randomTextureID;
 
-#define PARTICLE_TYPE_LAUNCHER 0.0f
-#define PARTICLE_TYPE_SHELL 1.0f
+// Inputs in the geometry shader must be arrays
+in float type_0[];
+in vec3 position_0[];
+in vec3 velocity_0[];
+in float age_0[];
+in float size_0[];
 
-vec3 GetRandomDir(float TexCoord);
-vec3 Rand(float TexCoord);
+out float type_1;
+out vec3 position_1;
+out vec3 velocity_1;
+out float age_1;
+out float size_1;
 
-void main()
-{
-    float Age = Age0[0] - deltaUpdateTime * 1000.0f;
-    float speedRate = 0.1f;
-	if(Type0[0] == PARTICLE_TYPE_LAUNCHER){//火焰发射粒子
-        if(Age <= 0 ){
-            //发射第二级粒子
-            Type1 = PARTICLE_TYPE_SHELL;
-            Position1 = Position0[0];
-            vec3 Dir = GetRandomDir(Age0[0]+now * 1000);
-            Dir.y = min(Dir.y,-0.5f);
-            Velocity1 = normalize(Dir)/speedRate;
-            Age1 = Age0[0];
-            Size1 = (MAX_SIZE-MIN_SIZE)*Rand(Age0[0]+now * 1000).x+MIN_SIZE;
-            EmitVertex();
-            EndPrimitive();
-            Age = (MAX_LAUNCH-MIN_LAUNCH)*Rand(Age0[0]).y + MIN_LAUNCH;
+#define PARTICLE_TYPE_BASE    0.0f
+#define PARTICLE_TYPE_DERIVED 1.0f
+
+vec3 randvec3(float TexCoord);
+
+vec3 randvec3(float TexCoord) {
+    vec3 ret = texture(randomTextureID, TexCoord).xyz;
+    return ret;
+}
+
+void emitBaseSnow(float age) {
+    type_1     = PARTICLE_TYPE_BASE;
+    position_1 = position_0[0];
+    velocity_1 = velocity_0[0];
+    age_1      = age;
+    size_1     = 0;
+    EmitVertex();
+    EndPrimitive();
+}
+
+void emitDerivedSnow() {
+    type_1     = PARTICLE_TYPE_DERIVED;
+    position_1 = position_0[0];
+    vec3 direction = randvec3(age_0[0] + now) - vec3(0.5, 0.5, 0.5);
+    direction.y = min(direction.y, -0.5f);
+    velocity_1 = normalize(direction) * 50;
+    age_1      = age_0[0];
+    size_1     = (MAX_SIZE - MIN_SIZE) * randvec3(age_0[0] + now).x + MIN_SIZE;
+    EmitVertex();
+    EndPrimitive();
+}
+
+void emitRenewDerivedSnow(float age) {
+    vec3 delta_pos = velocity_0[0] * deltaUpdateTime;
+    vec3 rand = randvec3(age_0[0] + now);
+    if (rand.y > 0) rand.y = -rand.y;
+    vec3 delta_vel = deltaUpdateTime * rand;
+    type_1         = PARTICLE_TYPE_DERIVED;
+    position_1     = position_0[0] + delta_pos;
+    velocity_1     = velocity_0[0] + delta_vel;
+    age_1          = age;
+    size_1         = size_0[0];
+    EmitVertex();
+    EndPrimitive();
+}
+
+void main() {
+    float age = age_0[0] - deltaUpdateTime * 1000.0f;
+    if (type_0[0] == PARTICLE_TYPE_BASE) {
+        if (age <= 0) {
+            emitDerivedSnow();
+            age = (MAX_LAUNCH - MIN_LAUNCH) * randvec3(age_0[0]).y + MIN_LAUNCH;
         }
-        Type1 = PARTICLE_TYPE_LAUNCHER;
-        Position1 = Position0[0];
-        Velocity1 = Velocity0[0];
-        Age1 = Age;
-        Size1 = 0;
-        EmitVertex();
-        EndPrimitive();
-      }
-    else{
-        if(Position0[0].y > LOWEST_ALIVE_Y){
-            float DeltaTimeSecs = deltaUpdateTime;
-            vec3 DeltaP = Velocity0[0]*DeltaTimeSecs;
-            vec3 DeltaV = DeltaTimeSecs*vec3(3.0,-3.81,0.0);
-            Type1 = PARTICLE_TYPE_SHELL;
-            Position1 = Position0[0] + DeltaP;
-            Velocity1 = Velocity0[0] + DeltaV;
-            Age1 = Age;
-            Size1 = Size0[0];
-            EmitVertex();
-            EndPrimitive();
+        emitBaseSnow(age);
+    } else {
+        if (position_0[0].y > LOWEST_ALIVE_Y) {
+            emitRenewDerivedSnow(age);
         }
     }
-}
-
-vec3 GetRandomDir(float TexCoord)
-{
-	vec3 Dir = texture(gRandomTexture,TexCoord).xyz;
-	Dir -= vec3(0.5,0.5,0.5);
-	return Dir;
-}
-
-vec3 Rand(float TexCoord){//随机0-1
-    vec3 ret = texture(gRandomTexture,TexCoord).xyz;
-    return ret; 
 }
