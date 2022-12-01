@@ -34,8 +34,8 @@ class SnowSystem : public DrawableObject
     static inline const GLfloat HIGHEST_ALIVE_Y = 200.0f;
     static inline const GLfloat SNOWING_AREA_WIDTH = 500.0f;
 
-    static inline const int MAX_NUM_PARTICLES = 40000;
     static inline const int INIT_NUM_PARTICLES = 1000;
+    static inline const int MAX_NUM_PARTICLES = 100000;
     static inline const int NUM_RANDOM_TEXTURE = 512;
 
     bool firstUpdate = true;
@@ -79,13 +79,14 @@ public:
 
     void Setup()
     {
-        SetupRandomTexture(NUM_RANDOM_TEXTURE);
         flakeTexture.load(this->texturePath);
 
         updateShader.Setup();
         renderShader.Setup();
         renderShader.use();
         renderShader.setInt("flankTextureID", 0);
+
+        this->SetupRandomTexture(NUM_RANDOM_TEXTURE);
 
         std::vector<SnowParticle> particles(MAX_NUM_PARTICLES);
         for (int i = 0; i < INIT_NUM_PARTICLES; i++) {
@@ -198,7 +199,7 @@ public:
         this->renderIndex = (this->renderIndex + 1) & 0x1;
     }
 
-    void SetupRandomTexture(unsigned int num)
+    void SetupRandomTexture(GLuint num)
     {
         std::vector<glm::vec3> textures(num);
         for (int i = 0; i < num; i++) {
