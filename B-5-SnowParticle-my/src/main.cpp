@@ -17,8 +17,6 @@
 #include "Window.hpp"
 #include "GUI.hpp"
 #include "Shader.hpp"
-// #include "SkyBox.hpp"
-// #include "Terrian.hpp"
 #include "Snow.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
