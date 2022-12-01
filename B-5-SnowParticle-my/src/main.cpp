@@ -38,10 +38,10 @@ int main() {
     };
     SnowSystem snowSystem;
     snowSystem.SetUpdateShader(
-        "./assets/Shaders/Update.vs", "./assets/Shaders/Update.fs",
-        "./assets/Shaders/Update.gs", varyings);
-    snowSystem.SetRenderShader("./assets/Shaders/Render.vs", "./assets/Shaders/Render.fs");
-    snowSystem.SetTexturePath("./assets/Textures/snowstorm.bmp");
+        "./assets/update.vs", "./assets/update.fs", "./assets/update.gs", varyings
+    );
+    snowSystem.SetRenderShader("./assets/render.vs", "./assets/render.fs");
+    snowSystem.SetTexturePath("./assets/SnowFlake.bmp");
     snowSystem.Setup();
 
     GUI gui(window);
