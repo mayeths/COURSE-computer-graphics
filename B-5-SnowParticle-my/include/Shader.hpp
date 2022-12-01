@@ -10,7 +10,7 @@
 
 class Shader
 {
-public:
+private:
     unsigned int ID = 0;
 public:
     std::string vertexPath;
@@ -21,6 +21,7 @@ public:
     std::vector<const GLchar *> varyings;
 
     Shader() {}
+
     // Graphics Shader
     Shader(const std::string vertexPath, const std::string fragmentPath,
            const std::string tessControlPath = "", const std::string tessEvalPath = "",
@@ -31,18 +32,15 @@ public:
         this->geometryPath = geometryPath;
         this->tessControlPath = tessControlPath;
         this->tessEvalPath = tessEvalPath;
-        this->Setup();
     }
 
     // Compute Shader (Transform Feedback Shader)
-    Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath,
-        std::vector<const char *> varyings)
+    Shader(const std::string vertexPath, const std::string fragmentPath, const std::string geometryPath, const std::vector<const char *> varyings)
     {
         this->vertexPath = vertexPath;
         this->fragmentPath = fragmentPath;
         this->geometryPath = geometryPath;
         this->varyings = varyings;
-        this->Setup();
     }
 
     void Setup()

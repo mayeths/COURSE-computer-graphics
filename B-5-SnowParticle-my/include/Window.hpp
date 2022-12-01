@@ -300,10 +300,6 @@ public:
         int major = 0, minor = 0, rev = 0;
         glfwGetVersion(&major, &minor, &rev);
         log_debug("GLFW version: %d.%d.%d", major, minor, rev);
-
-        GLint maxTessLevel = 0;
-        glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
-        log_debug("Max available tess level: %d", maxTessLevel);
     }
 
 };

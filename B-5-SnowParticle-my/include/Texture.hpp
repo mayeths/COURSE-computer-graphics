@@ -20,7 +20,7 @@ class Texture
     int nChannels;
     GLuint ID;
 
-    bool Load(string path, GLint wrap_param = GL_REPEAT)
+    bool load(string path, GLint wrap_param = GL_REPEAT)
     {
         this->path = path;
         glGenTextures(1, &this->ID);

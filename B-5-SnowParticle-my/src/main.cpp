@@ -186,7 +186,16 @@ int main() {
     camera.setPosition(glm::vec3(0.0f, 10.0f, 200.0f));
     camera.setMaxRenderDistance(1e6f);
 
+    std::vector<const GLchar *> varyings = {
+        "Type1", "Position1", "Velocity1", "Age1", "Size1"
+    };
     SnowSystem snowSystem;
+    snowSystem.SetUpdateShader(
+        "./assets/Shaders/Update.vs", "./assets/Shaders/Update.fs",
+        "./assets/Shaders/Update.gs", varyings);
+    snowSystem.SetRenderShader("./assets/Shaders/Render.vs", "./assets/Shaders/Render.fs");
+    snowSystem.SetTexturePath("./assets/Textures/snowstorm.bmp");
+    snowSystem.Setup();
 
     GUI gui(window);
     gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
