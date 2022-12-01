@@ -39,7 +39,6 @@ link_directories(${GLFW_DIR}/lib-${ARCH} ${SOIL_DIR}/lib-${ARCH} ${FREETYPE_DIR}
 ### Target: executable
 aux_source_directory(${SRC_DIR} SOURCES)
 add_executable(${EXE} ${SOURCES})
-message(STATUS "${SOURCES}")
 target_include_directories(${EXE} PRIVATE "${INC_DIR}")
 set_property(TARGET ${EXE} PROPERTY CXX_STANDARD 17)
 

@@ -1,128 +1,97 @@
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <SOIL.h>
+#include <glad/glad.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <array>
+#include <vector>
+#include <string>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/random.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "log.h"
+#include "Window.hpp"
 #include "GUI.hpp"
-#include "Camera.h"
-#include "Snow.h"
-#include "floor.h"
+#include "Shader.hpp"
+#include "SnowSystem.hpp"
 
-#include <iostream>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
-void key_callback(GLFWwindow* window,int key, int scancode,int action,int mode);
-void do_movement();
-void mouse_callback(GLFWwindow* window,double xpos,double ypos);
-void scroll_callback(GLFWwindow* window,double xoffset,double yoffset);
-
-GLfloat screenWidth = 1600;
-GLfloat screenHeight = 1000;
-Camera::Camera camera(glm::vec3(0.0f,0.0f,0.0f));
-bool keys[1024];
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
-GLfloat lastX = 400,lastY = 300;
-bool firstMouse = true;
-string str_fps;
-char c[8];
-int FrameRate = 0;
-int FrameCount = 0;
-int timeLeft = 0;
-
-int main(){
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-
-	GLFWwindow* window = glfwCreateWindow(screenWidth,screenHeight,"Learn OpenGL",NULL,NULL);
-	if(window == NULL){
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+int main() {
+    GLint success = 0;
+    Window window(&success, "B-5-SnowParticle", 800, 600);
+    if (success != 1) {
+        log_fatal("Failed to create GLFW window");
         return -1;
     }
 
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPosCallback(window,mouse_callback);
-	glfwSetScrollCallback(window,scroll_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    Floor floor;
-	Snow::Snow snow;
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+    Camera &camera = window.camera;
+    camera.setPosition(glm::vec3(0.0f, 50.0f, 200.0f));
+    camera.setMaxRenderDistance(1e6f);
 
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+    std::vector<const GLchar *> varyings = {
+        "type_1", "position_1", "velocity_1", "age_1", "size_1"
+    };
+    SnowSystem snowSystem;
+    snowSystem.SetUpdateShader(
+        "./assets/update.vs", "./assets/update.fs", "./assets/update.gs", varyings
+    );
+    snowSystem.SetRenderShader("./assets/render.vs", "./assets/render.fs");
+    snowSystem.SetTexturePath("./assets/SnowFlake.bmp");
+    snowSystem.Setup();
 
-	while(!glfwWindowShouldClose(window)){
-		glfwPollEvents();
-		do_movement();
-		//render
-		glClearColor(0.0,0.0,0.0,1.0);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	
-		glm::mat4 projection(1.0f);
-		glm::mat4 model(1.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		projection = glm::perspective(glm::radians(45.0f),screenWidth/screenHeight,0.1f,2000.f);
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, position);
-            floor.render(model,view,projection);
-        }
-		snow.Render(deltaTime,model,view,projection, floor.y);
+    GUI gui(window);
+    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
+        ImGui::SetNextWindowPos(ImVec2(window.SCR_WIDTH-60, 0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
-		GLfloat currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-	glfwTerminate();
+        ImGui::SameLine();
+        ImGui::Text("%.0f FPS", 1 / (now - lastRenderTime));
+        ImGui::End();
+    });
+    gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
+        ImGui::SetNextWindowPos(ImVec2(0, 44), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("Tips", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::Text("Position %2.0f %2.0f %2.0f",
+            camera.Position[0], camera.Position[1], camera.Position[2]
+        );
+        ImGui::Text("Press Tab to enter god mod");
+        ImGui::End();
+    });
 
-	return 0;
-}
+    double now;
+    double lastUpdateTime = 0;
+    double lastRenderTime = 0;
+    while (window.continueLoop()) {
+        lastRenderTime = now;
+        lastUpdateTime = now;
+        now = glfwGetTime();
+        double deltaUpdateTime = now - lastUpdateTime;
+        double deltaRenderTime = now - lastRenderTime;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
-	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window,GL_TRUE);
-	if(action == GLFW_PRESS)
-		keys[key] = true;
-	else if(action == GLFW_RELEASE)
-		keys[key] = false;
-}
+        ////// logic update
+        window.processInput(deltaUpdateTime, deltaRenderTime);
+        snowSystem.update(now, deltaUpdateTime);
+        gui.update();
 
-void do_movement(){
-	GLfloat cameraSpeed = 5.0f*deltaTime;
-	if(keys[GLFW_KEY_W])
-		camera.ProcessKeyboard(Camera::FORWARD,deltaTime);
-	if(keys[GLFW_KEY_S])
-		camera.ProcessKeyboard(Camera::BACKWARD,deltaTime);
-	if(keys[GLFW_KEY_A])
-		camera.ProcessKeyboard(Camera::LEFTS,deltaTime);
-	if(keys[GLFW_KEY_D])
-		camera.ProcessKeyboard(Camera::RIGHTS,deltaTime);
-}
+        ////// frame render
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = camera.GetProjectionMatrix(
+            lastRenderTime, now, (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT
+        );
+        snowSystem.render(now, deltaRenderTime, view, projection);
+        gui.render(window.w, lastRenderTime, now);
 
-void mouse_callback(GLFWwindow* window,double xpos,double ypos){
-	if(firstMouse){
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-	GLfloat xoffset = xpos - lastX;
-	GLfloat yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
-	camera.ProcessMouseMovement(xoffset,yoffset);
-}
+        window.swapBuffersAndPollEvents();
+    }
 
-void scroll_callback(GLFWwindow* window,double xoffset,double yoffset){
-	camera.ProcessMouseScroll(yoffset);
+    return 0;
 }
