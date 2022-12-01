@@ -16,7 +16,7 @@
 #include "Window.hpp"
 #include "GUI.hpp"
 #include "Shader.hpp"
-#include "Snow.hpp"
+#include "SnowSystem.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
