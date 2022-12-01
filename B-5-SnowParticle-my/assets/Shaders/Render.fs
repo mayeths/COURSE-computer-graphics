@@ -2,11 +2,11 @@
 
 in vec3 pos;
 out vec4 color;
-uniform sampler2D snowflower;
+uniform sampler2D flankTextureID;
 
 void main()
 {
-    vec4 texColor = texture(snowflower,gl_PointCoord);
+    vec4 texColor = texture(flankTextureID, gl_PointCoord);
 	texColor.a = texColor.a;
     //if(texColor.r < 0.3)discard;
     //color = texColor;
