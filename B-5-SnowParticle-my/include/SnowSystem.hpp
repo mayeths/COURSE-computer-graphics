@@ -56,9 +56,9 @@ public:
         this->currTransformBufferIndex = 1;
         mFirst = true;
         mTimer = 0;
-        const GLchar* varyings[5] = {"Type1","Position1", "Velocity1","Age1","Size1"};
+        std::vector<const GLchar *> varyings = {"Type1", "Position1", "Velocity1", "Age1", "Size1"};
         updateShader = new Shader("./assets/Shaders/Update.vs", "./assets/Shaders/Update.fs", 
-                        "./assets/Shaders/Update.gs", varyings, 5);
+                        "./assets/Shaders/Update.gs", varyings);
         renderShader = new Shader("./assets/Shaders/Render.vs", "./assets/Shaders/Render.fs");
         InitRandomTexture(512);
         flakeTexture.Load("./assets/Textures/snowstorm.bmp");

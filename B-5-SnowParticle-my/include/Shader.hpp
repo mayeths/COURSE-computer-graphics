@@ -18,116 +18,10 @@ public:
     std::string geometryPath;
     std::string tessControlPath;
     std::string tessEvalPath;
-
-
-Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath,
-	const GLchar* varyings[], int count) {
-	std::string vertexCode;
-	std::string fragmentCode;
-	std::string geometryCode;
-	std::ifstream vShaderFile;
-	std::ifstream fShaderFile;
-	std::ifstream gShaderFile;
-
-	log_info("shader 1.0");
-
-	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	try {
-		vShaderFile.open(vertexPath);
-		fShaderFile.open(fragmentPath);
-		gShaderFile.open(geometryPath);
-		std::stringstream vShaderStream, fShaderStream, gShaderStream;
-
-		vShaderStream << vShaderFile.rdbuf();
-		fShaderStream << fShaderFile.rdbuf();
-		gShaderStream << gShaderFile.rdbuf();
-
-		vShaderFile.close();
-		fShaderFile.close();
-		gShaderFile.close();
-
-		vertexCode = vShaderStream.str();
-		fragmentCode = fShaderStream.str();
-		geometryCode = gShaderStream.str();
-
-	}
-	catch (std::ifstream::failure e) {
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
-	}
-	log_info("shader 2.0");
-
-	const char* vShaderCode = vertexCode.c_str();
-	const char*	fShaderCode = fragmentCode.c_str();
-	const char* gShaderCode = geometryCode.c_str();
-
-	unsigned int vertex, fragment, geometry;
-	int success;
-	char infoLog[512];
-
-	log_info("shader 3.0");
-
-	vertex = glCreateShader(GL_VERTEX_SHADER);
-	log_info("shader 3.1");
-	glShaderSource(vertex, 1, &vShaderCode, NULL);
-	log_info("shader 3.2");
-	glCompileShader(vertex);
-	log_info("shader 3.3");
-	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-	log_info("shader 3.4");
-	if (!success) {
-		log_info("shader 3.4.1");
-		glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-		log_info("shader 3.4.2");
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	log_info("shader 4.0");
-
-	fragment = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment, 1, &fShaderCode, NULL);
-	glCompileShader(fragment);
-	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT_COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	log_info("shader 5.0");
-
-	geometry = glCreateShader(GL_GEOMETRY_SHADER);
-	glShaderSource(geometry, 1, &gShaderCode, NULL);
-	glCompileShader(geometry);
-	glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(geometry, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::GEOMETRY_COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	log_info("shader 6.0");
-
-	this->ID = glCreateProgram();
-	glAttachShader(this->ID, vertex);
-	glAttachShader(this->ID, geometry);
-	glAttachShader(this->ID, fragment);
-	if (varyings == NULL)std::cout << "varyings string is NULL " << std::endl;
-	glTransformFeedbackVaryings(this->ID, count, varyings, GL_INTERLEAVED_ATTRIBS);
-	glLinkProgram(this->ID);
-	glGetProgramiv(this->ID, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(this->ID, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-	log_info("shader 7.0");
-
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);
-	glDeleteShader(geometry);
-	log_info("shader 8.0");
-}
+    std::vector<const GLchar *> varyings;
 
     Shader() {}
+    // Graphics Shader
     Shader(const std::string vertexPath, const std::string fragmentPath,
            const std::string tessControlPath = "", const std::string tessEvalPath = "",
            const std::string geometryPath = "")
@@ -137,7 +31,18 @@ Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geome
         this->geometryPath = geometryPath;
         this->tessControlPath = tessControlPath;
         this->tessEvalPath = tessEvalPath;
-		this->Setup();
+        this->Setup();
+    }
+
+    // Compute Shader (Transform Feedback Shader)
+    Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath,
+        std::vector<const char *> varyings)
+    {
+        this->vertexPath = vertexPath;
+        this->fragmentPath = fragmentPath;
+        this->geometryPath = geometryPath;
+        this->varyings = varyings;
+        this->Setup();
     }
 
     void Setup()
@@ -256,6 +161,10 @@ Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geome
         if (geometryPath.size() > 0) glAttachShader(this->ID, geometry);
         if (tessControlPath.size() > 0) glAttachShader(this->ID, tessControl);
         if (tessEvalPath.size() > 0) glAttachShader(this->ID, tessEval);
+        // If this is a compute shader
+        if (this->varyings.size() != 0) {
+            glTransformFeedbackVaryings(this->ID, this->varyings.size(), this->varyings.data(), GL_INTERLEAVED_ATTRIBS);
+        }
         glLinkProgram(this->ID);
         if (!this->checkCompileErrors(this->ID, "PROGRAM")) {
             return;
