@@ -11,55 +11,43 @@
 
 using namespace std;
 
-class CTexture
+class Texture
 {
    public:
-    GLuint textureID;
+    std::string path;
+    int width;
+    int height;
+    int nChannels;
+    GLuint ID;
 
-    CTexture() {}
-
-    ~CTexture()
+    bool Load(string path, GLint wrap_param = GL_REPEAT)
     {
-        glDeleteTextures(1, &textureID);
-    }
-
-    void loadTexture(string path, bool constrain = false)
-    {
-        glGenTextures(1, &textureID);
-        int width, height, nrComponents;
-        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
-        if (data) {
-            GLenum format;
-            switch (nrComponents) {
-                case 1:
-                    format = GL_RED;
-                    break;
-                case 3:
-                    format = GL_RGB;
-                    break;
-                case 4:
-                    format = GL_RGBA;
-                    break;
-            }
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexImage2D(
-                GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data
-            );
-            glGenerateMipmap(GL_TEXTURE_2D);
-            // if (!constrain) {
-            // 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            // 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            // }
-            // else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            // }
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            log_info("load texture %s ok", path.c_str());
-        } else {
-            std::cout << "Texture failed to load at path: " << path << std::endl;
+        this->path = path;
+        glGenTextures(1, &this->ID);
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nChannels, 0);
+        if (!data) {
+            log_error("Texture failed to load: %s", path.c_str());
+            return false;
         }
+        GLenum format =
+            (nChannels == 1) ? GL_RED :
+            (nChannels == 3) ? GL_RGB :
+            (nChannels == 4) ? GL_RGBA :
+            GL_RGB;
+        glBindTexture(GL_TEXTURE_2D, this->ID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_param);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_param);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         stbi_image_free(data);
+        return true;
     }
+
+    ~Texture()
+    {
+        glDeleteTextures(1, &this->ID);
+    }
+
 };

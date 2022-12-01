@@ -65,8 +65,8 @@ namespace Snow {
 		GLuint mParticleArrays[2];
 		GLuint mTransformFeedbacks[2];//粒子发射系统对应的TransformFeedback
 		GLuint mRandomTexture;//随机一维纹理
-		CTexture mSparkTexture;//Alpha纹理
-		CTexture mStartTexture;
+		Texture mSparkTexture;//Alpha纹理
+		Texture mStartTexture;
 		float mTimer;//粒子发射器已经发射的时间
 		bool mFirst;
 		Shader* mUpdateShader;//更新粒子的GPUProgram
@@ -100,7 +100,7 @@ namespace Snow {
 		log_info("hahha 3.0");
 		InitRandomTexture(512);
 		log_info("hahha 4.0");
-		mSparkTexture.loadTexture("./assets/Textures/snowstorm.bmp");
+		mSparkTexture.Load("./assets/Textures/snowstorm.bmp");
 		log_info("hahha 5.0");
 		mRenderShader->use();
 		log_info("hahha 6.0");
@@ -224,7 +224,7 @@ namespace Snow {
 		glEnableVertexAttribArray(1);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mSparkTexture.textureID);
+		glBindTexture(GL_TEXTURE_2D, mSparkTexture.ID);
 		glDrawTransformFeedback(GL_POINTS, mTransformFeedbacks[mCurTransformFeedbackIndex]);
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
