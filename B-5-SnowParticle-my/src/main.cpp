@@ -186,7 +186,7 @@ int main() {
     camera.setPosition(glm::vec3(0.0f, 10.0f, 200.0f));
     camera.setMaxRenderDistance(1e6f);
 
-    Snow::Snow snow;
+    SnowSystem snowSystem;
 
     GUI gui(window);
     gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
@@ -253,6 +253,7 @@ int main() {
         // skybox.update(now, deltaUpdateTime);
         // terrian.update(now, deltaUpdateTime);
         // gui.update();
+        snowSystem.update(now, deltaRenderTime);
 
         ////// frame render
 		glClearColor(0.0,0.0,0.0,1.0);
@@ -292,7 +293,8 @@ int main() {
                 // floor.render(model,view,projection);
             }
             float deltaTime = deltaRenderTime;
-            snow.Render(deltaTime,model,view,projection, -1.0);
+            snowSystem.render(now, deltaRenderTime, view, projection);
+            // snowSystem.render(deltaTime,model,view,projection, -1.0);
         }
 
         // skybox.render(now, deltaRenderTime, view, projection);

@@ -1,271 +1,240 @@
 #pragma once
 
-#include <iostream>
-#include <ctime>
-#include <math.h>
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
+
+#include "DrawableObject.hpp"
 #include "Camera.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
 #include "log.h"
 
-namespace Snow {
+static const GLfloat PARTICLE_TYPE_LAUNCHER = 0.0f;
+static const GLfloat PARTICLE_TYPE_SHELL = 1.0f;
+static const glm::vec3 MAX_VELOC = glm::vec3(0.0,-3.0,0.0);
+static const glm::vec3 MIN_VELOC = glm::vec3(0.0,-1.0,0.0);
+static const GLfloat MAX_LAUNCH = 1.0f * 1000.0f;
+static const GLfloat MIN_LAUNCH = 0.5f * 1000.0f;
+static const GLfloat INIT_SIZE = 10.0f;
+static const GLfloat MAX_SIZE = 10.0f;
+static const GLfloat MIN_SIZE = 3.0f;
+static const GLfloat ground = 3.0f;
 
-#define PARTICLE_TYPE_LAUNCHER 0.0f
-#define PARTICLE_TYPE_SHELL 1.0f
-	//◊Ó¥ÛÀŸ∂»
-#define MAX_VELOC glm::vec3(0.0,-3.0,0.0)
-	//◊Ó–°ÀŸ∂»
-#define MIN_VELOC glm::vec3(0.0,-1.0,0.0)
-	//∑¢…‰¡£◊”◊Ó¥Û÷‹∆⁄
-#define MAX_LAUNCH 1.0f*1000.0f
-	//∑¢…‰¡£◊”◊Ó–°÷‹∆⁄
-#define MIN_LAUNCH 0.5f*1000.0f
-	//≥ı ºµ„æ´¡È¥Û–°
-#define INIT_SIZE 10.0f
-#define MAX_SIZE 10.0f
-#define MIN_SIZE 3.0f
+static const int MAX_PARTICLES = 5000;
+static const int INIT_PARTICLES = 500;
+static const glm::vec3 center = glm::vec3(0.0f);
+static const float areaLength = 500.0f;
+static const float fallHeight = 180.0f;
 
-	const int MAX_PARTICLES = 5000;//∂®“Â¡£◊”∑¢…‰œµÕ≥◊Ó¥Ûµƒ¡£◊” ˝
-								   //≥ı º∑¢…‰∆˜¿˝◊” ˝¡ø
-	const int INIT_PARTICLES = 500;
-	//¬‰—©÷––ƒ
-	const glm::vec3 center(0.0f);
-	const float areaLength = 500.0f;
-	const float fallHeight = 180.0f;
+struct SnowParticle {
+    float type;
+    glm::vec3 position;
+    glm::vec3 velocity;
+    float lifetimeMills;
+    float size;
+};
 
-	struct SnowParticle
-	{
-		float type;
-		glm::vec3 position;
-		glm::vec3 velocity;
-		float lifetimeMills;//ƒÍ¡‰
-		float size;//¡£◊”µ„æ´¡È¥Û–°
-	};
+class SnowSystem : public DrawableObject
+{
+public:
+    SnowSystem();
+    ~SnowSystem();
+    virtual void update(double now, double deltaUpdateTime)
+    {
+        mTimer = now * 1000.0f;
+        UpdateParticles(deltaUpdateTime * 1000.0f, ground);
+    }
 
+    virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection)
+    {
+        RenderParticles(glm::mat4(1.0f), view, projection);
+        mCurVBOIndex = mCurTransformFeedbackIndex;
+        mCurTransformFeedbackIndex = (mCurTransformFeedbackIndex + 1) & 0x1;
+    }
 
+private:
+    bool InitSnow();
+    void UpdateParticles(float frametimeMills, float floorY);//Êõ¥Êñ∞Á≤íÂ≠êÁöÑ‰ΩçÁΩÆÁ≠â
+    void InitRandomTexture(unsigned int size);//ÁîüÊàê1Áª¥ÈöèÊú∫Á∫πÁêÜ
+    void RenderParticles(glm::mat4 worldMatrix, glm::mat4 viewMatrix, glm::mat4 projectMatrix);
+    void GenInitLocation(SnowParticle partciles[], int nums);//ÁîüÊàêÂàùÂßãÁ≤íÂ≠ê
 
-	class Snow
-	{
-	public:
-		Snow();
-		~Snow();
-		void Render(float frametimeMills, glm::mat4& worldMatrix, glm::mat4 viewMatrix, glm::mat4& projectMatrix, float floorY);
-	private:
-		bool InitSnow();
-		void UpdateParticles(float frametimeMills, float floorY);//∏¸–¬¡£◊”µƒŒª÷√µ»
-		void InitRandomTexture(unsigned int size);//…˙≥…1Œ¨ÀÊª˙Œ∆¿Ì
-		void RenderParticles(glm::mat4& worldMatrix, glm::mat4& viewMatrix, glm::mat4& projectMatrix);
-		void GenInitLocation(SnowParticle partciles[], int nums);//…˙≥…≥ı º¡£◊”
+    unsigned int mCurVBOIndex, mCurTransformFeedbackIndex;
+    GLuint mParticleBuffers[2]; //Á≤íÂ≠êÂèëÂ∞ÑÁ≥ªÁªüÁöÑ‰∏§‰∏™È°∂ÁÇπÁºìÂ≠òÂå∫
+    GLuint mParticleArrays[2];
+    GLuint mTransformFeedbacks[2];//Á≤íÂ≠êÂèëÂ∞ÑÁ≥ªÁªüÂØπÂ∫îÁöÑTransformFeedback
+    GLuint mRandomTexture;//ÈöèÊú∫‰∏ÄÁª¥Á∫πÁêÜ
+    Texture mSparkTexture;//AlphaÁ∫πÁêÜ
+    Texture mStartTexture;
+    float mTimer;//Á≤íÂ≠êÂèëÂ∞ÑÂô®Â∑≤ÁªèÂèëÂ∞ÑÁöÑÊó∂Èó¥
+    bool mFirst;
+    Shader* updateShader;
+    Shader* renderShader;
 
-		unsigned int mCurVBOIndex, mCurTransformFeedbackIndex;
-		GLuint mParticleBuffers[2]; //¡£◊”∑¢…‰œµÕ≥µƒ¡Ω∏ˆ∂•µ„ª∫¥Ê«¯
-		GLuint mParticleArrays[2];
-		GLuint mTransformFeedbacks[2];//¡£◊”∑¢…‰œµÕ≥∂‘”¶µƒTransformFeedback
-		GLuint mRandomTexture;//ÀÊª˙“ªŒ¨Œ∆¿Ì
-		Texture mSparkTexture;//AlphaŒ∆¿Ì
-		Texture mStartTexture;
-		float mTimer;//¡£◊”∑¢…‰∆˜“—æ≠∑¢…‰µƒ ±º‰
-		bool mFirst;
-		Shader* mUpdateShader;//∏¸–¬¡£◊”µƒGPUProgram
-		Shader* mRenderShader;//‰÷»æ¡£◊”µƒGPUProgram
-	};
+};
+
+SnowSystem::SnowSystem()
+{
+    mCurVBOIndex = 0;
+    mCurTransformFeedbackIndex = 1;
+    mFirst = true;
+    mTimer = 0;
+    const GLchar* varyings[5] = {"Type1","Position1", "Velocity1","Age1","Size1"};
+    updateShader = new Shader("./assets/Shaders/Update.vs", "./assets/Shaders/Update.fs", 
+                    "./assets/Shaders/Update.gs", varyings, 5);
+    renderShader = new Shader("./assets/Shaders/Render.vs", "./assets/Shaders/Render.fs");
+    InitRandomTexture(512);
+    mSparkTexture.Load("./assets/Textures/snowstorm.bmp");
+    renderShader->use();
+    renderShader->setInt("snowflower", 0);
+    glUseProgram(0);
+    InitSnow();
 }
 
 
-namespace Snow {
-	Snow::Snow()
-	{
-		mCurVBOIndex = 0;
-		mCurTransformFeedbackIndex = 1;
-		mFirst = true;
-		mTimer = 0;
-		log_info("hahha 1.0");
-		const GLchar* varyings[5] = { "Type1","Position1",
-			"Velocity1","Age1","Size1"
-		};//…Ë÷√TransformFeedback“™≤∂ªÒµƒ ‰≥ˆ±‰¡ø
-		log_info("hahha 1.1");
-		mUpdateShader = new Shader("./assets/Shaders/Update.vs", "./assets/Shaders/Update.fs", 
-						"./assets/Shaders/Update.gs", varyings, 5);
-		log_info("hahha 1.2");
-		//…Ë÷√TransformFeedbackª∫¥Êƒ‹πªº«¬ºµƒ∂•µ„µƒ ˝æ›¿‡–Õ
+SnowSystem::~SnowSystem()
+{
+}
 
-		log_info("hahha 2.0");
+bool SnowSystem::InitSnow()
+{
+    SnowParticle particles[MAX_PARTICLES];
+    memset(particles, 0, sizeof(particles));
+    GenInitLocation(particles, INIT_PARTICLES);
+    glGenTransformFeedbacks(2, mTransformFeedbacks);
+    glGenBuffers(2, mParticleBuffers);
+    glGenVertexArrays(2, mParticleArrays);
+    for (int i = 0; i < 2; i++)
+    {
+        glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, mTransformFeedbacks[i]);
+        glBindBuffer(GL_ARRAY_BUFFER, mParticleBuffers[i]);
+        glBindVertexArray(mParticleArrays[i]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(particles), particles, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mParticleBuffers[i]);
+        //glBindBuffer(GL_ARRAY_BUFFER,0);
+    }
+    //glBindTransformFeedback(GL_TRANSFORM_FEEDBACK,0);
+    glBindVertexArray(0);
+    //ÁªëÂÆöÁ∫πÁêÜ
+    updateShader->use();
+    updateShader->setInt("gRandomTexture", 0);
+    updateShader->setFloat("MAX_SIZE", MAX_SIZE);
+    updateShader->setFloat("MIN_SIZE", MIN_SIZE);
+    updateShader->setFloat("MAX_LAUNCH", MAX_LAUNCH);
+    updateShader->setFloat("MIN_LAUNCH", MIN_LAUNCH);
+    glUseProgram(0);
+    return true;
+}
 
-		mRenderShader = new Shader("./assets/Shaders/Render.vs", 
-							"./assets/Shaders/Render.fs");
-		//…Ë÷√ÀÊª˙Œ∆¿Ì
-		log_info("hahha 3.0");
-		InitRandomTexture(512);
-		log_info("hahha 4.0");
-		mSparkTexture.Load("./assets/Textures/snowstorm.bmp");
-		log_info("hahha 5.0");
-		mRenderShader->use();
-		log_info("hahha 6.0");
-		mRenderShader->setInt("snowflower", 0);
-		log_info("hahha 7.0");
-		glUseProgram(0);
-		log_info("hahha 8.0");
-		InitSnow();
-		log_info("hahha 9.0");
-	}
+void SnowSystem::UpdateParticles(float frametimeMills, float floorY)
+{
+    updateShader->use();
+    updateShader->setFloat("gDeltaTimeMillis", frametimeMills);
+    updateShader->setFloat("gTime", mTimer);
+    updateShader->setFloat("floorY", floorY);
+    //ÁªëÂÆöÁ∫πÁêÜ
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_1D, mRandomTexture);
 
+    glEnable(GL_RASTERIZER_DISCARD);//Êàë‰ª¨Ê∏≤ÊüìÂà∞TransformFeedbackÁºìÂ≠ò‰∏≠ÂéªÔºåÂπ∂‰∏çÈúÄË¶ÅÂÖâÊ†ÖÂåñ
+    glBindVertexArray(mParticleArrays[mCurVBOIndex]);
+    glBindBuffer(GL_ARRAY_BUFFER, mParticleBuffers[mCurVBOIndex]);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, mTransformFeedbacks[mCurTransformFeedbackIndex]);
 
-	Snow::~Snow()
-	{
-	}
+    glEnableVertexAttribArray(0);//type
+    glEnableVertexAttribArray(1);//position
+    glEnableVertexAttribArray(2);//velocity
+    glEnableVertexAttribArray(3);//lifetime
+    glEnableVertexAttribArray(4);//size
+    glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, type));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, position));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, velocity));
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, lifetimeMills));
+    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, size));
+    glBeginTransformFeedback(GL_POINTS);
+    if (mFirst)
+    {
+        glDrawArrays(GL_POINTS, 0, INIT_PARTICLES);
+        mFirst = false;
+    }
+    else {
+        glDrawTransformFeedback(GL_POINTS, mTransformFeedbacks[mCurVBOIndex]);
+    }
+    glEndTransformFeedback();
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
+    glDisable(GL_RASTERIZER_DISCARD);
+    //glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
-	bool Snow::InitSnow()
-	{
-		SnowParticle particles[MAX_PARTICLES];
-		memset(particles, 0, sizeof(particles));
-		GenInitLocation(particles, INIT_PARTICLES);
-		glGenTransformFeedbacks(2, mTransformFeedbacks);
-		glGenBuffers(2, mParticleBuffers);
-		glGenVertexArrays(2, mParticleArrays);
-		for (int i = 0; i < 2; i++)
-		{
-			glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, mTransformFeedbacks[i]);
-			glBindBuffer(GL_ARRAY_BUFFER, mParticleBuffers[i]);
-			glBindVertexArray(mParticleArrays[i]);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(particles), particles, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mParticleBuffers[i]);
-			//glBindBuffer(GL_ARRAY_BUFFER,0);
-		}
-		//glBindTransformFeedback(GL_TRANSFORM_FEEDBACK,0);
-		glBindVertexArray(0);
-		//∞Û∂®Œ∆¿Ì
-		mUpdateShader->use();
-		mUpdateShader->setInt("gRandomTexture", 0);
-		mUpdateShader->setFloat("MAX_SIZE", MAX_SIZE);
-		mUpdateShader->setFloat("MIN_SIZE", MIN_SIZE);
-		mUpdateShader->setFloat("MAX_LAUNCH", MAX_LAUNCH);
-		mUpdateShader->setFloat("MIN_LAUNCH", MIN_LAUNCH);
-		glUseProgram(0);
-		return true;
-	}
+void SnowSystem::RenderParticles(glm::mat4 worldMatrix,
+    glm::mat4 viewMatrix, glm::mat4 projectMatrix)
+{
+    glEnable(GL_POINT_SPRITE);
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-	void Snow::Render(float frametimeMills, glm::mat4& worldMatrix,
-		glm::mat4 viewMatrix, glm::mat4& projectMatrix, float floorY)
-	{
-		mTimer += frametimeMills*1000.0f;
-		UpdateParticles(frametimeMills*1000.0f, floorY);
-		RenderParticles(worldMatrix, viewMatrix, projectMatrix);
-		mCurVBOIndex = mCurTransformFeedbackIndex;
-		mCurTransformFeedbackIndex = (mCurTransformFeedbackIndex + 1) & 0x1;
-	}
+    renderShader->use();
+    renderShader->setMat4("model", worldMatrix);
+    renderShader->setMat4("view", viewMatrix);
+    renderShader->setMat4("projection", projectMatrix);
+    //glBindVertexArray(mParticleArrays[mCurTransformFeedbackIndex]);
+    //glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,mParticleBuffers[mCurTransformFeedbackIndex]);
+    glBindBuffer(GL_ARRAY_BUFFER, mParticleBuffers[mCurTransformFeedbackIndex]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, position));
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, size));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
-	void Snow::UpdateParticles(float frametimeMills, float floorY)
-	{
-		mUpdateShader->use();
-		mUpdateShader->setFloat("gDeltaTimeMillis", frametimeMills);
-		mUpdateShader->setFloat("gTime", mTimer);
-		mUpdateShader->setFloat("floorY", floorY);
-		//∞Û∂®Œ∆¿Ì
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_1D, mRandomTexture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mSparkTexture.ID);
+    glDrawTransformFeedback(GL_POINTS, mTransformFeedbacks[mCurTransformFeedbackIndex]);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glEnable(GL_DEPTH_TEST);
+}
 
-		glEnable(GL_RASTERIZER_DISCARD);//Œ“√«‰÷»æµΩTransformFeedbackª∫¥Ê÷–»•£¨≤¢≤ª–Ë“™π‚’§ªØ
-		glBindVertexArray(mParticleArrays[mCurVBOIndex]);
-		glBindBuffer(GL_ARRAY_BUFFER, mParticleBuffers[mCurVBOIndex]);
-		glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, mTransformFeedbacks[mCurTransformFeedbackIndex]);
+void SnowSystem::InitRandomTexture(unsigned int size)
+{
+    srand(time(NULL));
+    glm::vec3* pRandomData = new glm::vec3[size];
+    for (int i = 0; i < size; i++)
+    {
+        pRandomData[i].x = float(rand()) / float(RAND_MAX);
+        pRandomData[i].y = float(rand()) / float(RAND_MAX);
+        pRandomData[i].z = float(rand()) / float(RAND_MAX);
+    }
+    glGenTextures(1, &mRandomTexture);
+    glBindTexture(GL_TEXTURE_1D, mRandomTexture);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, size, 0, GL_RGB, GL_FLOAT, pRandomData);
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    delete[] pRandomData;
+    pRandomData = nullptr;
+}
 
-		glEnableVertexAttribArray(0);//type
-		glEnableVertexAttribArray(1);//position
-		glEnableVertexAttribArray(2);//velocity
-		glEnableVertexAttribArray(3);//lifetime
-		glEnableVertexAttribArray(4);//size
-		glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, type));
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, position));
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, velocity));
-		glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, lifetimeMills));
-		glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, size));
-		glBeginTransformFeedback(GL_POINTS);
-		if (mFirst)
-		{
-			glDrawArrays(GL_POINTS, 0, INIT_PARTICLES);
-			mFirst = false;
-		}
-		else {
-			glDrawTransformFeedback(GL_POINTS, mTransformFeedbacks[mCurVBOIndex]);
-		}
-		glEndTransformFeedback();
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
-		glDisableVertexAttribArray(3);
-		glDisableVertexAttribArray(4);
-		glDisable(GL_RASTERIZER_DISCARD);
-		//glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-
-	void Snow::RenderParticles(glm::mat4& worldMatrix,
-		glm::mat4& viewMatrix, glm::mat4& projectMatrix)
-	{
-		glEnable(GL_POINT_SPRITE);
-		glEnable(GL_PROGRAM_POINT_SIZE);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-		mRenderShader->use();
-		mRenderShader->setMat4("model", worldMatrix);
-		mRenderShader->setMat4("view", viewMatrix);
-		mRenderShader->setMat4("projection", projectMatrix);
-		//glBindVertexArray(mParticleArrays[mCurTransformFeedbackIndex]);
-		//glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,mParticleBuffers[mCurTransformFeedbackIndex]);
-		glBindBuffer(GL_ARRAY_BUFFER, mParticleBuffers[mCurTransformFeedbackIndex]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, position));
-		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(SnowParticle), (void*)offsetof(SnowParticle, size));
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mSparkTexture.ID);
-		glDrawTransformFeedback(GL_POINTS, mTransformFeedbacks[mCurTransformFeedbackIndex]);
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glEnable(GL_DEPTH_TEST);
-	}
-
-	void Snow::InitRandomTexture(unsigned int size)
-	{
-		srand(time(NULL));
-		glm::vec3* pRandomData = new glm::vec3[size];
-		for (int i = 0; i < size; i++)
-		{
-			pRandomData[i].x = float(rand()) / float(RAND_MAX);
-			pRandomData[i].y = float(rand()) / float(RAND_MAX);
-			pRandomData[i].z = float(rand()) / float(RAND_MAX);
-		}
-		glGenTextures(1, &mRandomTexture);
-		glBindTexture(GL_TEXTURE_1D, mRandomTexture);
-		glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, size, 0, GL_RGB, GL_FLOAT, pRandomData);
-		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		delete[] pRandomData;
-		pRandomData = nullptr;
-	}
-
-	void Snow::GenInitLocation(SnowParticle particles[], int nums)
-	{
-		srand(time(NULL));
-		for (int x = 0; x < nums; x++) {
-			glm::vec3 record(0.0f);
-			record.x = (2.0f*float(rand()) / float(RAND_MAX) - 1.0f)*areaLength;
-			record.z = (2.0f*float(rand()) / float(RAND_MAX) - 1.0f)*areaLength;
-			record.y = fallHeight;
-			particles[x].type = PARTICLE_TYPE_LAUNCHER;
-			particles[x].position = record;
-			particles[x].velocity = (MAX_VELOC - MIN_VELOC)*(float(rand()) / float(RAND_MAX))
-				+ MIN_VELOC;//‘⁄◊Ó¥Û◊Ó–°ÀŸ∂»÷Æº‰ÀÊª˙—°‘Ò
-			particles[x].size = INIT_SIZE;//∑¢…‰∆˜¡£◊”¥Û–°
-			particles[x].lifetimeMills = 0.5f*(float(rand()) / float(RAND_MAX)) + 0.1f;
-		}
-	}
+void SnowSystem::GenInitLocation(SnowParticle particles[], int nums)
+{
+    srand(time(NULL));
+    for (int x = 0; x < nums; x++) {
+        glm::vec3 record(0.0f);
+        record.x = (2.0f*float(rand()) / float(RAND_MAX) - 1.0f)*areaLength;
+        record.z = (2.0f*float(rand()) / float(RAND_MAX) - 1.0f)*areaLength;
+        record.y = fallHeight;
+        particles[x].type = PARTICLE_TYPE_LAUNCHER;
+        particles[x].position = record;
+        particles[x].velocity = (MAX_VELOC - MIN_VELOC)*(float(rand()) / float(RAND_MAX))
+            + MIN_VELOC;//Âú®ÊúÄÂ§ßÊúÄÂ∞èÈÄüÂ∫¶‰πãÈó¥ÈöèÊú∫ÈÄâÊã©
+        particles[x].size = INIT_SIZE;//ÂèëÂ∞ÑÂô®Á≤íÂ≠êÂ§ßÂ∞è
+        particles[x].lifetimeMills = 0.5f*(float(rand()) / float(RAND_MAX)) + 0.1f;
+    }
 }
