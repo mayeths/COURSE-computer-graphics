@@ -2,6 +2,7 @@
 
 #include "DrawableObject.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 
 class Terrian : public DrawableObject
 {
@@ -12,11 +13,12 @@ public:
 
     Shader shader;
     std::string heightMapPath;
-    std::string texturePath;
-    GLuint heightMapID = 0;
-    GLuint textureID = 0;
+    std::string defaultTexturePath;
+    std::string detailTexturePath;
+    Texture heightMapTexture;
+    Texture defaultTexture;
+    Texture detailTexture;
     GLuint VAO = 0, VBO = 0;
-    int width, height;
     bool polygonMode = false;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath, const std::string tessControlPath, const std::string tessEvalPath)
@@ -30,9 +32,13 @@ public:
     {
         this->heightMapPath = heightMapPath;
     }
-    void SetTexturePath(const std::string texturePath)
+    void SetTexturePath(const std::string defaultTexturePath)
     {
-        this->texturePath = texturePath;
+        this->defaultTexturePath = defaultTexturePath;
+    }
+    void SetDetailTexturePath(const std::string detailTexturePath)
+    {
+        this->detailTexturePath = detailTexturePath;
     }
 
     void Setup()
@@ -41,51 +47,36 @@ public:
         // -------------------------
         this->shader.Setup();
 
-        glGenTextures(1, &this->heightMapID);
-        glBindTexture(GL_TEXTURE_2D, this->heightMapID);
+        this->heightMapTexture.Load2D(this->heightMapPath.c_str());
+        this->heightMapTexture.Bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        int nchannels;
-        const char *path = this->heightMapPath.c_str();
-        GLubyte *data = stbi_load(path, &this->width, &this->height, &nchannels, 0);
-        if (!data) {
-            log_error("Failed to load heightmap %s", path);
-            return;
-        }
-        GLenum format = nchannels == 4 ? GL_RGBA : GL_RGB;
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        log_debug("Loaded heightmap of size [%d, %d]", height, width);
-        stbi_image_free(data);
+        this->heightMapTexture.Unbind();
 
-        glGenTextures(1, &this->textureID);
-        glBindTexture(GL_TEXTURE_2D, this->textureID);
+        detailTexture.Load2D(this->detailTexturePath.c_str());
+        detailTexture.Bind();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        detailTexture.Unbind();
+
+        defaultTexture.Load2D(this->defaultTexturePath.c_str());
+        defaultTexture.Bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        int textureWidth, textureHeight, textureNchannels;
-        const char *texturePath = this->texturePath.c_str();
-        GLubyte *textureData = stbi_load(texturePath, &textureWidth, &textureHeight, &textureNchannels, 0);
-        if (!textureData) {
-            log_error("Failed to load texture %s", texturePath);
-            return;
-        }
-        GLenum textureFormat = textureNchannels == 4 ? GL_RGBA : GL_RGB;
-        glTexImage2D(GL_TEXTURE_2D, 0, textureFormat, textureWidth, textureHeight, 0, textureFormat, GL_UNSIGNED_BYTE, textureData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(textureData);
-
-        this->shader.use();
-        this->shader.setInt("heightMap", 0);
-        this->shader.setInt("texture_terrianID", 1);
+        defaultTexture.Unbind();
 
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
         std::vector<GLfloat> vertices;
 
+        int width = this->heightMapTexture.width;
+        int height = this->heightMapTexture.height;
         GLfloat frez = (GLfloat)rez;
         for(GLuint i = 0; i <= rez-1; i++) {
             for(GLuint j = 0; j <= rez-1; j++) {
@@ -142,12 +133,14 @@ public:
 
     virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection)
     {
-        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, this->heightMapID);
-        glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, this->textureID);
+        this->heightMapTexture.Active(GL_TEXTURE0);
+        this->defaultTexture.Active(GL_TEXTURE1);
+        this->shader.use();
+        this->shader.setInt("heightMap", 0);
+        this->shader.setInt("texture_terrianID", 1);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, this->position);
-        this->shader.use();
         this->shader.setMat4("projection", projection);
         this->shader.setMat4("view", view);
         this->shader.setMat4("model", model);

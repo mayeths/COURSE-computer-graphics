@@ -209,6 +209,7 @@ int main() {
     // terrian.SetHeightMapPath("assets/textures/iceland_heightmap.png");
     terrian.SetHeightMapPath("assets/TerrianHW/heightmap.bmp");
     terrian.SetTexturePath("assets/TerrianHW/terrain-texture3.bmp");
+    terrian.SetDetailTexturePath("assets/TerrianHW/detail.bmp");
     terrian.MoveWith(glm::vec3(0.0f, -2.0f, 0.0f));
     terrian.Setup();
 
