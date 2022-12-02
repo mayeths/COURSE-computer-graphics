@@ -25,7 +25,7 @@
 
 int main() {
     GLint success = 0;
-    Window window(&success, "C-3-pyramid", 800, 600);
+    Window window(&success, "A-6-TerrianEngine", 800, 600);
     if (success != 1) {
         log_fatal("Failed to create GLFW window");
         return -1;

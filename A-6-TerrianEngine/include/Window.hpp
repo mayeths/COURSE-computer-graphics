@@ -111,12 +111,16 @@ public:
     {
         KeyboardListenerObject *klistener = dynamic_cast<KeyboardListenerObject *>(object);
         if (klistener != nullptr) {
-            const std::map<int, KeyPriority> kreg = klistener->KeyboardRegister();
-            for (auto const& x : kreg) {
-                int key = x.first;
-                KeyPriority priority = x.second;
-                // this->keyboardListeners[key].push(std::make_pair(priority, klistener));
-            }
+            // const std::map<std::tuple<KeyCode, KeyEvent, KeyPriority>> kreg = klistener->KeyboardRegister();
+            // for (auto const& x : kreg) {
+            //     int key = x.first;
+            //     std::tuple<KeyCode, KeyEvent, KeyPriority> reg = x.second;
+            //     KeyCode code = std::get<0>(reg);
+            //     KeyEvent event = std::get<1>(reg);
+            //     KeyPriority priority = std::get<2>(reg);
+                
+            //     // this->keyboardListeners[key].push(std::make_pair(priority, klistener));
+            // }
         }
     }
 

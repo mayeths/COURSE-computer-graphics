@@ -18,7 +18,7 @@ endif()
 
 set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 
-project(pyramid)
+project(TerrianEngine)
 set(EXE ${PROJECT_NAME})
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
