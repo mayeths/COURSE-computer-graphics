@@ -11,13 +11,15 @@
 #include <limits>
 
 #include "Object/BaseObject.hpp"
-#include "Object/CallableObject.hpp"
-#include "Object/KeyboardListenerObject.hpp"
 #include "log.h"
 #include "Camera.hpp"
 
 class Window {
 public:
+    enum class KeyState : bool
+    {
+        STATE_RELEASE, STATE_PRESS
+    };
 
     uint32_t SCR_WIDTH  = 1600;
     uint32_t SCR_HEIGHT = 900;
@@ -31,21 +33,12 @@ public:
     float mouseLastY =  600.0 / 2.0;
 
     bool enableInputListening = true;
-    class KeyboardQueues {
-        public:
-        std::deque<std::pair<KeyPriority, KeyboardListenerObject *>> keyDownListenner;
-        std::deque<std::pair<KeyPriority, KeyboardListenerObject *>> keyUpListenner;
-        std::deque<std::pair<KeyPriority, KeyboardListenerObject *>> keyPressListenner;
-    };
-    std::map<int, KeyboardQueues> keyboardListeners;
     bool enableKeyListening = true;
 
     std::vector<KeyState> keystate1;
     std::vector<KeyState> keystate2;
     std::vector<KeyState> *keystate = &keystate1;
     std::vector<KeyState> *old_keystate = &keystate2;
-
-    std::vector<CallableObject *> callables;
 
 public:
     // initializer
@@ -89,12 +82,9 @@ public:
 
         glfwSetFramebufferSizeCallback(this->w, &Window::framebuffer_size_callback);
         glfwSetWindowFocusCallback(this->w, &Window::focus_callback);
-	    glfwSetKeyCallback(this->w, &Window::keyboard_callback);
         glfwSetCursorPosCallback(this->w, &Window::mouse_callback);
         glfwSetScrollCallback(this->w, &Window::scroll_callback);
         glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        // glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        // glfwSetWindowUserPointer(this->w, this);
         glEnable(GL_DEPTH_TEST);
 
         camera.setPosition(Camera::INIT_POSITION)
@@ -107,64 +97,8 @@ public:
         this->terminate();
     }
 
-    void AddObject(BaseObject *object)
-    {
-        KeyboardListenerObject *klistener = dynamic_cast<KeyboardListenerObject *>(object);
-        if (klistener != nullptr) {
-            // const std::map<std::tuple<KeyCode, KeyEvent, KeyPriority>> kreg = klistener->KeyboardRegister();
-            // for (auto const& x : kreg) {
-            //     int key = x.first;
-            //     std::tuple<KeyCode, KeyEvent, KeyPriority> reg = x.second;
-            //     KeyCode code = std::get<0>(reg);
-            //     KeyEvent event = std::get<1>(reg);
-            //     KeyPriority priority = std::get<2>(reg);
-                
-            //     // this->keyboardListeners[key].push(std::make_pair(priority, klistener));
-            // }
-        }
-    }
-
     void processInput(float deltaUpdateTime, float deltaRenderTime)
     {
-        // for (auto const &x : this->keyboardListeners) {
-        //     int const &key = x.first;
-        //     auto const &queue = x.second;
-        //     if (queue.size() == 0)
-        //         continue;
-        //     // for (auto const &y : queue) {
-        //     //     KeyPriority priority = y.first;
-        //     //     KeyboardListenerObject *object = y.second;
-        //     // }
-        // }
-
-        for (auto const &x : keyboardListeners) {
-            const int &key = x.first;
-            const auto &queues = x.second;
-            const KeyState state = (*keystate)[key];
-            const KeyState old_state = (*old_keystate)[key];
-            if (old_state == KeyState::STATE_RELEASE && state == KeyState::STATE_PRESS) {
-                const KeyEvent event = KeyEvent::KEY_DOWN;
-                for (auto const &y : queues.keyDownListenner) {
-                    KeyPriority priority = y.first;
-                    KeyboardListenerObject *object = y.second;
-                    object->KeyboardCallback(key, event);
-                }
-            } else if (old_state == KeyState::STATE_PRESS && state == KeyState::STATE_RELEASE) {
-                for (auto const &y : queues.keyUpListenner) {
-                    KeyPriority priority = y.first;
-                    KeyboardListenerObject *object = y.second;
-                    object->KeyboardCallback(key, KeyEvent::KEY_UP);
-                }
-                for (auto const &y : queues.keyPressListenner) {
-                    KeyPriority priority = y.first;
-                    KeyboardListenerObject *object = y.second;
-                    object->KeyboardCallback(key, KeyEvent::KEY_PRESS);
-                }
-            }
-        }
-        std::swap(keystate, old_keystate);
-
-
         bool keyTab = glfwGetKey(this->w, GLFW_KEY_TAB) == GLFW_PRESS;
         if (keyTab) {
             if (!this->keyTabStillPressing) {
@@ -247,23 +181,6 @@ public:
         self->mouseLastY = ypos;
 
         self->camera.ProcessMouseMovement(xoffset, yoffset);
-
-        // xoffset *= self->mouseSensitivity;
-        // yoffset *= self->mouseSensitivity;
-
-        // self->yaw += xoffset;
-        // self->pitch += yoffset;
-
-        // if (self->pitch > 89.0f)
-        //     self->pitch = 89.0f;
-        // if (self->pitch < -89.0f)
-        //     self->pitch = -89.0f;
-
-        // glm::vec3 front;
-        // front.x = cos(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
-        // front.y = sin(glm::radians(self->pitch));
-        // front.z = sin(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
-        // self->cameraFront = glm::normalize(front);
     }
 
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -272,9 +189,6 @@ public:
         if (self->inGodMod)
             return;
         self->camera.ProcessMouseScroll(static_cast<float>(yoffset));
-        // double maximumYOffset = 5.0f;
-        // self->lastScrollPollYOffset = yoffset / maximumYOffset; /* G102 is 3.0f */
-        // self->lastScrollPollTime = glfwGetTime();
     }
 
     static void focus_callback(GLFWwindow* window, int focused)
@@ -286,13 +200,6 @@ public:
             std::fill((*self->keystate).begin(), (*self->keystate).end(), KeyState::STATE_RELEASE);
             self->enableKeyListening = false;
         }
-    }
-
-    static void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-        Window *self = (Window *)glfwGetWindowUserPointer(window);
-        if (!self->enableKeyListening)
-            return;
-        (*self->keystate)[key] = action == GLFW_PRESS ? KeyState::STATE_PRESS : KeyState::STATE_RELEASE;
     }
 
     // put this at the end of the main

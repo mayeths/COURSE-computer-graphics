@@ -237,8 +237,6 @@ int main() {
     });
     gui.subscribe(&terrian);
 
-    window.AddObject(&terrian);
-
     double now;
     double lastUpdateTime = 0;
     double lastRenderTime = 0;

@@ -6,7 +6,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include "DrawableObject.hpp"
+#include "Object/DrawableObject.hpp"
 
 #include "Window.hpp"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DrawableObject.hpp"
+#include "Object/DrawableObject.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "structure.h"

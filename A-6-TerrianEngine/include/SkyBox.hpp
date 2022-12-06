@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DrawableObject.hpp"
+#include "Object/DrawableObject.hpp"
 #include "Shader.hpp"
 
 // https://community.khronos.org/t/how-to-make-array-of-sampler2d-uniforms/52862/3

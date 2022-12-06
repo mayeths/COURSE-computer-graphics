@@ -6,8 +6,6 @@
 
 #include <vector>
 
-#include "Object/KeyboardListenerObject.hpp"
-
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
     FORWARD,
@@ -19,7 +17,7 @@ enum Camera_Movement {
 };
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
-class Camera : KeyboardListenerObject
+class Camera
 {
 public:
     // Default camera values
@@ -194,25 +192,6 @@ public:
         double maximumY = 5.0f;
         this->LastScrollY = yoffset / maximumY; /* G102 is 3.0f */
         this->LastScrollTime = glfwGetTime();
-    }
-
-    virtual std::map<int, KeyPriority> KeyboardRegister()
-    {
-        return {
-            {GLFW_KEY_W, KeyPriority::Normal()},
-            {GLFW_KEY_S, KeyPriority::Normal()},
-            {GLFW_KEY_A, KeyPriority::Normal()},
-            {GLFW_KEY_D, KeyPriority::Normal()},
-            {GLFW_KEY_SPACE, KeyPriority::Normal()},
-            {GLFW_KEY_LEFT_CONTROL, KeyPriority::Normal()},
-            {GLFW_KEY_RIGHT_CONTROL, KeyPriority::Normal()},
-        };
-    }
-
-
-    virtual bool KeyboardCallback(int key, KeyEvent event)
-    {
-        return false;
     }
 
 private:
