@@ -33,6 +33,7 @@ public:
     GLfloat width = 50;
     GLfloat height = 50;
     GLfloat offsetY = 0;
+    GLfloat detailScale = 30;
     bool polygonMode = false;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath, const std::string tessControlPath = "", const std::string tessEvalPath = "")
@@ -248,9 +249,12 @@ public:
     {
         this->heightMapTexture.Active(GL_TEXTURE0);
         this->defaultTexture.Active(GL_TEXTURE1);
+        this->detailTexture.Active(GL_TEXTURE2);
         this->shader.use();
         this->shader.setInt("heightMap", 0);
         this->shader.setInt("defaultTextureID", 1);
+        this->shader.setInt("detailTextureID", 2);
+        this->shader.setFloat("detailScale", this->detailScale);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, this->position);

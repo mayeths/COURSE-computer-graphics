@@ -7,6 +7,8 @@ in vec3 TerrianTexCoord;
 uniform float offsetY;
 uniform int renderFlip;
 uniform sampler2D defaultTextureID;
+uniform sampler2D detailTextureID;
+uniform float detailScale; // 越大detail的纹理越密
 
 out vec4 FragColor;
 
@@ -23,6 +25,8 @@ void main()
     //     if (Height >= offsetY)
     //         discard;
     // }
-    FragColor = texture(defaultTextureID, TerrianTexCoord2D);
+    vec4 macro = texture(defaultTextureID, TerrianTexCoord2D);
+    vec4 micro = texture(detailTextureID, detailScale * TerrianTexCoord2D);
+    FragColor = macro + micro - 0.5f;
     // FragColor = vec4(h, h, h, 1.0);
 }

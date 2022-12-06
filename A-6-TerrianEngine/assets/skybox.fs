@@ -17,6 +17,7 @@ uniform sampler2D textureID2;
 uniform sampler2D textureID3;
 uniform sampler2D textureID4;
 uniform sampler2D textureID5;
+uniform float waterTextureScale; // 越大detail的纹理越密
 
 uniform float WaterRoll;
 
@@ -36,5 +37,5 @@ void main()
     else
         if (index < 6)
             if (index == 4) FragColor = texture(textureID4, TexCoord);
-            else FragColor = vec4(1.0, 1.0, 1.0, OPACITY) * texture(textureID5, TexCoord + WaterRoll);
+            else FragColor = vec4(1.0, 1.0, 1.0, OPACITY) * texture(textureID5, TexCoord * waterTextureScale + WaterRoll);
 }

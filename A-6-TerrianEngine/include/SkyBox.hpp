@@ -18,6 +18,7 @@ public:
     std::array<GLfloat, 6 * (6 * 6)> vertices;
     GLfloat imageRotation[6];
     GLfloat waterRoll;
+    GLfloat waterTextureScale = 0.05;
     GLfloat offsetY = 0;
 
     void SetTopImagePath(const std::string path, GLfloat rotation = 0)
@@ -171,6 +172,7 @@ public:
         this->shader.setInt("textureID3", 3);
         this->shader.setInt("textureID4", 4);
         this->shader.setInt("textureID5", 5);
+        this->shader.setFloat("waterTextureScale", this->waterTextureScale);
         this->waterRoll = 0.0;
 
         for (int i = 0; i < 6; i++) {
@@ -223,7 +225,7 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, 30);
 
         this->shader.setFloat("WaterRoll", this->waterRoll);
-        this->waterRoll += deltaRenderTime * 2;
+        this->waterRoll += deltaRenderTime;
         // glDisable(GL_DEPTH_TEST);
         glDepthMask(false);
         glEnable(GL_BLEND);
