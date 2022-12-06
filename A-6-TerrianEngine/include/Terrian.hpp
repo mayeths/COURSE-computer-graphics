@@ -103,141 +103,141 @@ public:
         //     }
         // }
 
-        {
-            std::vector<GLfloat> vertices;
-            // GLuint nrow = this->nrow;
-            // GLuint ncol = this->ncol;
-            GLuint nrow = this->heightMapTexture.height;
-            GLuint ncol = this->heightMapTexture.width;
-            this->nvertices = 0;
-            for (GLuint i = 0; i < nrow - 1; i++) {
-                for (GLuint j = 0; j < ncol - 1; j++) {
-                    vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow) * this->width); // vertex.x
-                    vertices.push_back((GLfloat)0);
-                    // vertices.push_back((GLfloat)heightmap[RMIDX(i, j, nrow, ncol)] / (GLfloat)maxHeight);
-                    vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol) * this->height); // vertex.z
-                    vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow)); // tex.s
-                    vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol)); // tex.t
+        // {
+        //     std::vector<GLfloat> vertices;
+        //     // GLuint nrow = this->nrow;
+        //     // GLuint ncol = this->ncol;
+        //     GLuint nrow = this->heightMapTexture.height;
+        //     GLuint ncol = this->heightMapTexture.width;
+        //     this->nvertices = 0;
+        //     for (GLuint i = 0; i < nrow - 1; i++) {
+        //         for (GLuint j = 0; j < ncol - 1; j++) {
+        //             vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow) * this->width); // vertex.x
+        //             vertices.push_back((GLfloat)0);
+        //             // vertices.push_back((GLfloat)heightmap[RMIDX(i, j, nrow, ncol)] / (GLfloat)maxHeight);
+        //             vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol) * this->height); // vertex.z
+        //             vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow)); // tex.s
+        //             vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol)); // tex.t
 
-                    vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow) * this->width); // vertex.x
-                    vertices.push_back((GLfloat)0);
-                    // vertices.push_back((GLfloat)heightmap[RMIDX(i, j+1, nrow, ncol)] / (GLfloat)maxHeight);
-                    vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol) * this->height); // vertex.z
-                    vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow)); // tex.s
-                    vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol)); // tex.t
+        //             vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow) * this->width); // vertex.x
+        //             vertices.push_back((GLfloat)0);
+        //             // vertices.push_back((GLfloat)heightmap[RMIDX(i, j+1, nrow, ncol)] / (GLfloat)maxHeight);
+        //             vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol) * this->height); // vertex.z
+        //             vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow)); // tex.s
+        //             vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol)); // tex.t
 
-                    vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow) * this->width); // vertex.x
-                    vertices.push_back((GLfloat)0);
-                    // vertices.push_back((GLfloat)heightmap[RMIDX(i+1, j+1, nrow, ncol)] / (GLfloat)maxHeight);
-                    vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol) * this->height); // vertex.z
-                    vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow)); // tex.s
-                    vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol)); // tex.t
+        //             vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow) * this->width); // vertex.x
+        //             vertices.push_back((GLfloat)0);
+        //             // vertices.push_back((GLfloat)heightmap[RMIDX(i+1, j+1, nrow, ncol)] / (GLfloat)maxHeight);
+        //             vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol) * this->height); // vertex.z
+        //             vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow)); // tex.s
+        //             vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol)); // tex.t
 
-                    vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow) * this->width); // vertex.x
-                    vertices.push_back((GLfloat)0);
-                    // vertices.push_back((GLfloat)heightmap[RMIDX(i+1, j+1, nrow, ncol)] / (GLfloat)maxHeight);
-                    vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol) * this->height); // vertex.z
-                    vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow)); // tex.s
-                    vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol)); // tex.t
+        //             vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow) * this->width); // vertex.x
+        //             vertices.push_back((GLfloat)0);
+        //             // vertices.push_back((GLfloat)heightmap[RMIDX(i+1, j+1, nrow, ncol)] / (GLfloat)maxHeight);
+        //             vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol) * this->height); // vertex.z
+        //             vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow)); // tex.s
+        //             vertices.push_back((GLfloat)(j+1) / (GLfloat)(ncol)); // tex.t
 
-                    vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow) * this->width); // vertex.x
-                    vertices.push_back((GLfloat)0);
-                    // vertices.push_back((GLfloat)heightmap[RMIDX(i+1, j, nrow, ncol)] / (GLfloat)maxHeight);
-                    vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol) * this->height); // vertex.z
-                    vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow)); // tex.s
-                    vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol)); // tex.t
+        //             vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow) * this->width); // vertex.x
+        //             vertices.push_back((GLfloat)0);
+        //             // vertices.push_back((GLfloat)heightmap[RMIDX(i+1, j, nrow, ncol)] / (GLfloat)maxHeight);
+        //             vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol) * this->height); // vertex.z
+        //             vertices.push_back((GLfloat)(i+1) / (GLfloat)(nrow)); // tex.s
+        //             vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol)); // tex.t
 
-                    vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow) * this->width); // vertex.x
-                    vertices.push_back((GLfloat)0);
-                    // vertices.push_back((GLfloat)heightmap[RMIDX(i, j, nrow, ncol)] / (GLfloat)maxHeight);
-                    vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol) * this->height); // vertex.z
-                    vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow)); // tex.s
-                    vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol)); // tex.t
+        //             vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow) * this->width); // vertex.x
+        //             vertices.push_back((GLfloat)0);
+        //             // vertices.push_back((GLfloat)heightmap[RMIDX(i, j, nrow, ncol)] / (GLfloat)maxHeight);
+        //             vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol) * this->height); // vertex.z
+        //             vertices.push_back((GLfloat)(i+0) / (GLfloat)(nrow)); // tex.s
+        //             vertices.push_back((GLfloat)(j+0) / (GLfloat)(ncol)); // tex.t
 
-                    this->nvertices += 6;
+        //             this->nvertices += 6;
 
-                    // Triangle t0, t1;
-                    // t0.a = RMIDX(i+0, j+0, nrow, ncol);
-                    // t0.b = RMIDX(i+0, j+1, nrow, ncol);
-                    // t0.c = RMIDX(i+1, j+1, nrow, ncol);
-                    // t1.a = RMIDX(i+1, j+1, nrow, ncol); // Normal direction satisfy right-hand law!
-                    // t1.b = RMIDX(i+1, j+0, nrow, ncol);
-                    // t1.c = RMIDX(i+0, j+0, nrow, ncol);
-                    // vertices.push_back(t0);
-                    // vertices.push_back(t1);
-                }
-            }
-
-            glGenVertexArrays(1, &this->VAO);
-            glGenBuffers(1, &this->VBO);
-
-            glBindVertexArray(this->VAO);
-            glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
-            glEnableVertexAttribArray(1);
-            glBindVertexArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        }
-
-
-        // // set up vertex data (and buffer(s)) and configure vertex attributes
-        // // ------------------------------------------------------------------
-        // std::vector<GLfloat> vertices;
-
-        // int width = this->heightMapTexture.width;
-        // int height = this->heightMapTexture.height;
-        // GLfloat frez = (GLfloat)rez;
-        // for(GLuint i = 0; i <= rez-1; i++) {
-        //     for(GLuint j = 0; j <= rez-1; j++) {
-        //         vertices.push_back(-width/2.0f + width*i/frez); // v.x
-        //         vertices.push_back(0.0f); // v.y
-        //         vertices.push_back(-height/2.0f + height*j/frez); // v.z
-        //         vertices.push_back(i / frez); // u
-        //         vertices.push_back(j / frez); // v
-
-        //         vertices.push_back(-width/2.0f + width*(i+1)/frez); // v.x
-        //         vertices.push_back(0.0f); // v.y
-        //         vertices.push_back(-height/2.0f + height*j/frez); // v.z
-        //         vertices.push_back((i+1) / frez); // u
-        //         vertices.push_back(j / frez); // v
-
-        //         vertices.push_back(-width/2.0f + width*i/frez); // v.x
-        //         vertices.push_back(0.0f); // v.y
-        //         vertices.push_back(-height/2.0f + height*(j+1)/frez); // v.z
-        //         vertices.push_back(i / frez); // u
-        //         vertices.push_back((j+1) / frez); // v
-
-        //         vertices.push_back(-width/2.0f + width*(i+1)/frez); // v.x
-        //         vertices.push_back(0.0f); // v.y
-        //         vertices.push_back(-height/2.0f + height*(j+1)/frez); // v.z
-        //         vertices.push_back((i+1) / frez); // u
-        //         vertices.push_back((j+1) / frez); // v
+        //             // Triangle t0, t1;
+        //             // t0.a = RMIDX(i+0, j+0, nrow, ncol);
+        //             // t0.b = RMIDX(i+0, j+1, nrow, ncol);
+        //             // t0.c = RMIDX(i+1, j+1, nrow, ncol);
+        //             // t1.a = RMIDX(i+1, j+1, nrow, ncol); // Normal direction satisfy right-hand law!
+        //             // t1.b = RMIDX(i+1, j+0, nrow, ncol);
+        //             // t1.c = RMIDX(i+0, j+0, nrow, ncol);
+        //             // vertices.push_back(t0);
+        //             // vertices.push_back(t1);
+        //         }
         //     }
+
+        //     glGenVertexArrays(1, &this->VAO);
+        //     glGenBuffers(1, &this->VBO);
+
+        //     glBindVertexArray(this->VAO);
+        //     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+        //     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+        //     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
+        //     glEnableVertexAttribArray(0);
+        //     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+        //     glEnableVertexAttribArray(1);
+        //     glBindVertexArray(0);
+        //     glBindBuffer(GL_ARRAY_BUFFER, 0);
         // }
-        // this->nvertices = (uint64_t)rez * (uint64_t)rez * 4;
-        // log_debug("Loaded %llu patches of 4 control points each", (uint64_t)(rez * rez));
-        // log_debug("Processing %llu vertices in vertex shader", this->nvertices);
-        // log_debug("Loaded heightmap of size [%d, %d]", height, width);
 
-        // // first, configure the cube's VAO (and VBO)
-        // glGenVertexArrays(1, &this->VAO);
-        // glBindVertexArray(this->VAO);
 
-        // glGenBuffers(1, &this->VBO);
-        // glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-        // glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+        // set up vertex data (and buffer(s)) and configure vertex attributes
+        // ------------------------------------------------------------------
+        std::vector<GLfloat> vertices;
 
-        // // position attribute
-        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        // glEnableVertexAttribArray(0);
-        // // texCoord attribute
-        // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(sizeof(float) * 3));
-        // glEnableVertexAttribArray(1);
+        int width = this->heightMapTexture.width;
+        int height = this->heightMapTexture.height;
+        GLfloat frez = (GLfloat)rez;
+        for(GLuint i = 0; i <= rez-1; i++) {
+            for(GLuint j = 0; j <= rez-1; j++) {
+                vertices.push_back(-width/2.0f + width*i/frez); // v.x
+                vertices.push_back(0.0f); // v.y
+                vertices.push_back(-height/2.0f + height*j/frez); // v.z
+                vertices.push_back(i / frez); // u
+                vertices.push_back(j / frez); // v
 
-        // glPatchParameteri(GL_PATCH_VERTICES, this->NUM_PATCH_PTS);
+                vertices.push_back(-width/2.0f + width*(i+1)/frez); // v.x
+                vertices.push_back(0.0f); // v.y
+                vertices.push_back(-height/2.0f + height*j/frez); // v.z
+                vertices.push_back((i+1) / frez); // u
+                vertices.push_back(j / frez); // v
+
+                vertices.push_back(-width/2.0f + width*i/frez); // v.x
+                vertices.push_back(0.0f); // v.y
+                vertices.push_back(-height/2.0f + height*(j+1)/frez); // v.z
+                vertices.push_back(i / frez); // u
+                vertices.push_back((j+1) / frez); // v
+
+                vertices.push_back(-width/2.0f + width*(i+1)/frez); // v.x
+                vertices.push_back(0.0f); // v.y
+                vertices.push_back(-height/2.0f + height*(j+1)/frez); // v.z
+                vertices.push_back((i+1) / frez); // u
+                vertices.push_back((j+1) / frez); // v
+            }
+        }
+        this->nvertices = (uint64_t)rez * (uint64_t)rez * 4;
+        log_debug("Loaded %llu patches of 4 control points each", (uint64_t)(rez * rez));
+        log_debug("Processing %llu vertices in vertex shader", this->nvertices);
+        log_debug("Loaded heightmap of size [%d, %d]", height, width);
+
+        // first, configure the cube's VAO (and VBO)
+        glGenVertexArrays(1, &this->VAO);
+        glBindVertexArray(this->VAO);
+
+        glGenBuffers(1, &this->VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        // texCoord attribute
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(sizeof(float) * 3));
+        glEnableVertexAttribArray(1);
+
+        glPatchParameteri(GL_PATCH_VERTICES, this->NUM_PATCH_PTS);
 
     }
 
@@ -249,7 +249,6 @@ public:
         this->defaultTexture.Active(GL_TEXTURE1);
         this->shader.use();
         this->shader.setInt("heightMap", 0);
-        // this->shader.setInt("texture_terrianID", 1);
         this->shader.setInt("defaultTextureID", 1);
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -265,8 +264,8 @@ public:
             glGetIntegerv(GL_POLYGON_MODE, previousPolygonMode);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
-        glDrawArrays(GL_TRIANGLES, 0, this->nvertices);
-        // glDrawArrays(GL_PATCHES, 0, this->NUM_PATCH_PTS * this->rez * this->rez);
+        // glDrawArrays(GL_TRIANGLES, 0, this->nvertices);
+        glDrawArrays(GL_PATCHES, 0, this->NUM_PATCH_PTS * this->rez * this->rez);
         if (this->polygonMode) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             // glPolygonMode(previousPolygonMode[0], previousPolygonMode[1]);

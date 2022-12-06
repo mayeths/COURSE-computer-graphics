@@ -197,23 +197,24 @@ int main() {
     skybox.SetSouthImagePath("assets/SkyBox/SkyBox2.bmp");
     skybox.SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90);
     skybox.SetBottomImagePath("assets/SkyBox/SkyBox5.bmp");
+    GLfloat skyBoxWidth = 1e4f; // Big value (likes 1e5f) will meet precision limit when testing depth
     // skybox.SetBoxWidth(1e5f);
     // skybox.MoveWith(glm::vec3(0.0f, 1e5f/2, 0.0f));
-    skybox.SetBoxWidth(100.0f);
-    skybox.MoveWith(glm::vec3(0.0f, -50, 0.0f));
+    skybox.SetBoxWidth(skyBoxWidth);
+    skybox.MoveWith(glm::vec3(0.0f, skyBoxWidth/2, 0.0f));
     skybox.Setup();
 
     Terrian terrian;
-    // terrian.SetShaderPath(
-    //     "assets/8.3.gpuheight.vs", "assets/8.3.gpuheight.fs",
-    //     "assets/8.3.gpuheight.tcs", "assets/8.3.gpuheight.tes"
-    // );
-    terrian.SetShaderPath("assets/terrian.vs", "assets/terrian.fs");
+    terrian.SetShaderPath(
+        "assets/8.3.gpuheight.vs", "assets/8.3.gpuheight.fs",
+        "assets/8.3.gpuheight.tcs", "assets/8.3.gpuheight.tes"
+    );
+    // terrian.SetShaderPath("assets/terrian.vs", "assets/terrian.fs");
     // terrian.SetHeightMapPath("assets/textures/iceland_heightmap.png");
     terrian.SetHeightMapPath("assets/TerrianHW/heightmap.bmp");
     terrian.SetTexturePath("assets/TerrianHW/terrain-texture3.bmp");
     terrian.SetDetailTexturePath("assets/TerrianHW/detail.bmp");
-    terrian.MoveWith(glm::vec3(0.0f, -0.0f, 0.0f));
+    terrian.MoveWith(glm::vec3(0.0f, -2.0f, 0.0f));
     terrian.Setup();
 
     GUI gui(window);

@@ -21,7 +21,7 @@ uniform float WaterRoll;
 
 void main()
 {
-    float OPACITY = 0.5;
+    float OPACITY = 0.3;
     int index = int(TextureIndex);
     if (index < 4)
         if (index < 2)
