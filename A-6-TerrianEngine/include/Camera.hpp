@@ -16,7 +16,6 @@ enum Camera_Movement {
     DOWN,
 };
 
-// An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
 {
 public:
@@ -184,13 +183,8 @@ public:
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset)
     {
-        // this->Zoom -= (float)yoffset;
-        // if (this->Zoom < 25.0f)
-        //     this->Zoom = 25.0f;
-        // if (this->Zoom > 45.0f)
-        //     this->Zoom = 45.0f;
         double maximumY = 5.0f;
-        this->LastScrollY = yoffset / maximumY; /* G102 is 3.0f */
+        this->LastScrollY = yoffset / maximumY; /* My Mouse Logitech G102 is 3.0f */
         this->LastScrollTime = glfwGetTime();
     }
 

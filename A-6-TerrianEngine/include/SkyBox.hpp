@@ -18,6 +18,7 @@ public:
     std::array<GLfloat, 6 * (6 * 6)> vertices;
     GLfloat imageRotation[6];
     GLfloat waterRoll;
+    GLfloat waterSpeed = 1.5;
     GLfloat waterTextureScale = 0.05;
     GLfloat offsetY = 0;
 
@@ -199,12 +200,6 @@ public:
         glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, this->textureIDs[5]);
 
         Scene scene;
-        // model = glm::rotate(model, this->imageRotation[0], scene.Down());
-
-        // glEnable(GL_CULL_FACE);
-        // glCullFace(GL_BACK);
-        // glFrontFace(GL_CW);
-
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, this->position);
         this->shader.use();
@@ -225,22 +220,13 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, 30);
 
         this->shader.setFloat("WaterRoll", this->waterRoll);
-        this->waterRoll += deltaRenderTime;
-        // glDisable(GL_DEPTH_TEST);
+        this->waterRoll += deltaRenderTime * this->waterSpeed;
         glDepthMask(false);
         glEnable(GL_BLEND);
-        // glEnable(GL_ALPHA_TEST);
-        // glAlphaFunc(GL_EQUAL, 1.0);
-        // glBindTexture(GL_TEXTURE_2D, texture[5]);   //绘制半透明海面波浪
         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    //用于绘制半透明的海面波纹以与底面纹理形成天空倒影的效果
         glDrawArrays(GL_TRIANGLES, 30, 6);
         glDisable(GL_BLEND);
-        // glEnable(GL_DEPTH_TEST);
         glDepthMask(true);
-
-        // glDisable(GL_CULL_FACE);
     }
-
-    virtual void GUIcallback(double lastRenderTime, double now) {}
 
 };

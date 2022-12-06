@@ -133,55 +133,6 @@ public:
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-
-        // glGenTextures(1, &texture1);
-        // glBindTexture(GL_TEXTURE_2D, texture1);
-        // /* http://www.c-jump.com/bcc/common/Talk3/OpenGL/Wk07_texture/W01_0190_minification_and_magn.htm
-        //     Ideally, one screen pixel maps to one of the texels in the texture
-        //     1. (magnification) As the object gets closer to the viewer,
-        //     multiple screen pixels can map to a single texel
-        //     Also, what should happen if one screen pixel ends up sampling multiple texels?
-        //     2. (minification) If the object moves farther away,
-        //     many texels of the image map to a single pixel on the screen
-        //     What happens when part of the texture is sampled by a single pixel?
-        // */
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        // int width, height, nchannels;
-        // GLubyte *data;
-        // GLenum format;
-        // stbi_set_flip_vertically_on_load(true);
-        // data = stbi_load("assets/textures/container.jpg", &width, &height, &nchannels, 0);
-        // format = nchannels == 4 ? GL_RGBA : GL_RGB;
-        // if (data) {
-        //     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        //     glGenerateMipmap(GL_TEXTURE_2D);
-        // } else {
-        //     log_error("Failed to load texture");
-        // }
-        // stbi_image_free(data);
-
-        // GLuint texture2;
-        // glGenTextures(1, &texture2);
-        // glBindTexture(GL_TEXTURE_2D, texture2);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // data = stbi_load("assets/textures/awesomeface.png", &width, &height, &nchannels, 0);
-        // format = nchannels == 4 ? GL_RGBA : GL_RGB;
-        // if (data) {
-        //     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        //     glGenerateMipmap(GL_TEXTURE_2D);
-        // } else {
-        //     log_error("Failed to load texture");
-        // }
-        // stbi_image_free(data);
-
-
     }
 
     virtual void update(double now, double deltaUpdateTime) {}
