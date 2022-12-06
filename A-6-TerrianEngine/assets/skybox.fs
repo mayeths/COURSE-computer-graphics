@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 in vec2 TexCoord;
 in float TextureIndex;
+in float Invalid;
 // in mat4 Transform0;
 // in mat4 Transform1;
 // in mat4 Transform2;
@@ -21,8 +22,10 @@ uniform float WaterRoll;
 
 void main()
 {
-    float OPACITY = 0.3;
+    float OPACITY = 0.7;
     int index = int(TextureIndex);
+    if (Invalid == 1)
+        discard;
     if (index < 4)
         if (index < 2)
             if (index == 0) FragColor = texture(textureID0, TexCoord);

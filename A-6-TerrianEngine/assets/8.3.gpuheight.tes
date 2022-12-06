@@ -1,6 +1,8 @@
 #version 410 core
 layout(quads, fractional_odd_spacing, ccw) in;
 
+uniform float offsetY;
+uniform int renderFlip;
 uniform sampler2D heightMap;
 uniform mat4 model;
 uniform mat4 view;
@@ -9,6 +11,7 @@ uniform mat4 projection;
 in vec2 TextureCoord[];
 
 out float Height;
+out float Invalid;
 out vec3 TerrianTexCoord;
 
 void main()
@@ -41,5 +44,15 @@ void main()
     vec4 p1 = (p11 - p10) * u + p10;
     vec4 p = (p1 - p0) * v + p0 + normal * Height;
 
-    gl_Position = projection * view * model * p;
+    vec4 modelPos = model * p;
+
+    if (renderFlip == 0) {
+        gl_Position = projection * view * modelPos;
+        Invalid = modelPos.y < offsetY ? 1 : 0;
+    } else {
+        modelPos.y = modelPos.y - 2 * (modelPos.y - offsetY);
+        gl_Position = projection * view * modelPos;
+        Invalid = modelPos.y > offsetY ? 1 : 0;
+    }
+
 }

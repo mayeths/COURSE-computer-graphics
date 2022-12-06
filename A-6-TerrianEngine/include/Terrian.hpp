@@ -32,6 +32,7 @@ public:
     // int nrow, ncol;
     GLfloat width = 50;
     GLfloat height = 50;
+    GLfloat offsetY = 0;
     bool polygonMode = false;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath, const std::string tessControlPath = "", const std::string tessEvalPath = "")
@@ -265,6 +266,10 @@ public:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         // glDrawArrays(GL_TRIANGLES, 0, this->nvertices);
+        this->shader.setFloat("offsetY", this->offsetY);
+        this->shader.setInt("renderFlip", 0);
+        glDrawArrays(GL_PATCHES, 0, this->NUM_PATCH_PTS * this->rez * this->rez);
+        this->shader.setInt("renderFlip", 1);
         glDrawArrays(GL_PATCHES, 0, this->NUM_PATCH_PTS * this->rez * this->rez);
         if (this->polygonMode) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

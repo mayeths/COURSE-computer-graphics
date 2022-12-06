@@ -18,6 +18,7 @@ public:
     std::array<GLfloat, 6 * (6 * 6)> vertices;
     GLfloat imageRotation[6];
     GLfloat waterRoll;
+    GLfloat offsetY = 0;
 
     void SetTopImagePath(const std::string path, GLfloat rotation = 0)
     {
@@ -214,11 +215,17 @@ public:
         this->shader.setMat4("model3", glm::rotate(model, glm::radians(this->imageRotation[3]), scene.Behind()));
         this->shader.setMat4("model4", glm::rotate(model, glm::radians(this->imageRotation[4]), scene.Right()));
         this->shader.setMat4("model5", glm::rotate(model, glm::radians(this->imageRotation[5]), scene.Down()));
-        this->shader.setFloat("WaterRoll", this->waterRoll);
-        this->waterRoll += deltaRenderTime;
+
+        this->shader.setFloat("offsetY", this->offsetY);
+        this->shader.setInt("renderFlip", 0);
+        glDrawArrays(GL_TRIANGLES, 0, 30);
+        this->shader.setInt("renderFlip", 1);
         glDrawArrays(GL_TRIANGLES, 0, 30);
 
+        this->shader.setFloat("WaterRoll", this->waterRoll);
+        this->waterRoll += deltaRenderTime * 2;
         // glDisable(GL_DEPTH_TEST);
+        glDepthMask(false);
         glEnable(GL_BLEND);
         // glEnable(GL_ALPHA_TEST);
         // glAlphaFunc(GL_EQUAL, 1.0);
@@ -227,6 +234,7 @@ public:
         glDrawArrays(GL_TRIANGLES, 30, 6);
         glDisable(GL_BLEND);
         // glEnable(GL_DEPTH_TEST);
+        glDepthMask(true);
 
         // glDisable(GL_CULL_FACE);
     }

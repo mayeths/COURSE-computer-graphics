@@ -198,8 +198,6 @@ int main() {
     skybox.SetWestImagePath("assets/SkyBox/SkyBox3.bmp", -90);
     skybox.SetBottomImagePath("assets/SkyBox/SkyBox5.bmp");
     GLfloat skyBoxWidth = 1e4f; // Big value (likes 1e5f) will meet precision limit when testing depth
-    // skybox.SetBoxWidth(1e5f);
-    // skybox.MoveWith(glm::vec3(0.0f, 1e5f/2, 0.0f));
     skybox.SetBoxWidth(skyBoxWidth);
     skybox.MoveWith(glm::vec3(0.0f, skyBoxWidth/2, 0.0f));
     skybox.Setup();
@@ -258,7 +256,8 @@ int main() {
         gui.update();
 
         ////// frame render
-        glClearColor(64 / 256., 48 / 256., 64 / 256., 1.0f);
+        // glClearColor(64 / 256., 48 / 256., 64 / 256., 1.0f);
+        glClearColor(0, 0, 0., 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
@@ -282,8 +281,8 @@ int main() {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-        skybox.render(now, deltaRenderTime, view, projection);
-        terrian.render(now, deltaRenderTime, view, projection);
+        terrian.render(now, deltaRenderTime, view, projection); // render object first
+        skybox.render(now, deltaRenderTime, view, projection); // then render transparent object
         gui.render(window.w, lastRenderTime, now);
 
         window.swapBuffersAndPollEvents();
