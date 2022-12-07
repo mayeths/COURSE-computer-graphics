@@ -16,6 +16,8 @@
 #include <stb_image.h>
 
 #include "log.h"
+#define MEMORY_IMPL
+#include "memory.h"
 #include "Scene.hpp"
 #include "Window.hpp"
 #include "GUI.hpp"
@@ -304,6 +306,7 @@ int main() {
 
         ////// Update Logic
         window.processInput(deltaUpdateTime, deltaRenderTime);
+        mesh.processInput(window.w);
         mesh.update(now, deltaUpdateTime);
         gui.update();
 
