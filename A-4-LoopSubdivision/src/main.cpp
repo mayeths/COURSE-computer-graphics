@@ -275,15 +275,19 @@ int main() {
             ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
             ImGui::SameLine();
             ImGui::Text("%.0f FPS", 1 / (now - lastRenderTime));
+            ImGui::Text("%s", readable_size(allocated_bytes).c_str());
             ImGui::End();
         });
         gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
             glm::vec3 cameraPos = camera.Position;
-            ImGui::SetNextWindowPos(ImVec2(0, 44), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+            ImGui::SetNextWindowPos(ImVec2(0, 94), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
             ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Tips", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
             ImGui::Text("Position %2.0f %2.0f %2.0f", cameraPos[0], cameraPos[1], cameraPos[2]);
-            ImGui::Text("Press Tab to enter god mod");
+            ImGui::Text("Press Tab to enable/disable mouse");
+            ImGui::Text("Press Q to switch to coarse mesh");
+            ImGui::Text("Press E to switch to fine mesh (Loop Subdivision)");
+            ImGui::Text("Current mesh index: %d of %d", (int)mesh.curr+1, (int)mesh.meshs.size());
             ImGui::End();
         });
     }
