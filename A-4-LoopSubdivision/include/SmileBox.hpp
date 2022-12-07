@@ -4,6 +4,7 @@
 #include "Shader.hpp"
 #include "Scene.hpp"
 #include "Texture.hpp"
+#include "raii.hpp"
 
 // https://community.khronos.org/t/how-to-make-array-of-sampler2d-uniforms/52862/3
 // https://stackoverflow.com/questions/12372058/how-to-use-gl-texture-2d-array-in-opengl-3-2
@@ -18,7 +19,10 @@ public:
     std::string texture1Path;
     Texture texture0;
     Texture texture1;
-    GLuint VAO = 0, VBO = 0;
+    VAO_raii VAO;
+    VBO_raii VBO;
+    // GLuint VAO = 0, VBO = 0;
+    // GLuint VBO = 0;
     int index;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath)
@@ -119,11 +123,11 @@ public:
             -0.5f, +0.5f, -0.5f,  0.0f*2, 0.0f*2,
         };
 
-        glGenVertexArrays(1, &this->VAO);
-        glGenBuffers(1, &this->VBO);
+        VAO.create(1);
+        VBO.create(1);
 
-        glBindVertexArray(this->VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+        glBindVertexArray(this->VAO.get());
+        glBindBuffer(GL_ARRAY_BUFFER, this->VBO.get());
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -152,7 +156,7 @@ public:
         this->shader.setMat4("view", view);
         this->shader.setMat4("model", model);
 
-        glBindVertexArray(this->VAO);
+        glBindVertexArray(this->VAO.get());
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 

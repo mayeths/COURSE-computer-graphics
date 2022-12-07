@@ -19,14 +19,213 @@
 #include "Scene.hpp"
 #include "Window.hpp"
 #include "GUI.hpp"
+#include "Mesh.hpp"
 #include "Shader.hpp"
-#include "SkyBox.hpp"
 #include "SmileBox.hpp"
-#include "Terrian.hpp"
+#include "zyMesh.h"
+
+#include "halfEdge_structure.h"
+
+// std::string fireHead = "";
+// std::string faceStart = "";
+// std::string fireEnd = "";
+// unsigned vertexNumber = 0;
+// unsigned faceNumber = 0;
+// unsigned halfedgeNumber = 0;
+
+// //check the head,just for this file version
+// bool checkHead(string s)
+// {
+// 	return(s == "#VRMLV2.0utf8(ConvertedtoASCII)Shape{geometryIndexedFaceSet{coordCoordinate{point[");
+// }
+
+// //check string between vertexs and faces
+// bool checkFace(string s)
+// {
+// 	return(s == "}coordIndex[");
+// }
+
+// //check end
+// bool checkEnd(string s)
+// {
+// 	return(s == "}}");
+// }
+
+// //convert string to double
+// double stringToDouble(const string& str)
+// {
+// 	istringstream iss(str);
+// 	double num;
+// 	iss >> num;
+// 	return num;
+// }
+
+// //convert string to int
+// int stringToInt(const string& str)
+// {
+// 	istringstream iss(str);
+// 	int num;
+// 	iss >> num;
+// 	return num;
+// }
+// unsigned countLine(string file)
+// {
+// 	ifstream wrlFile;
+// 	unsigned a = 0;
+// 	wrlFile.open(file.data());   //connect file stream
+// 	assert(wrlFile.is_open());   //if fail, warning and exit
+// 	string tempLine;
+	
+// 	while (getline(wrlFile,tempLine)) a++;
+// 	return a;
+// }
+
+// //read file, generate vertex table, halfedge table and face table
+// int readWrl(string file, HalfEdge_mesh* mesh)
+// {
+//     ifstream wrlFile;
+//     wrlFile.open(file.data());   //connect file stream
+//     assert(wrlFile.is_open());   //if fail, warning and exit
+
+//     HalfEdge_vertex vertex_temp;
+//     unsigned count_vertex_read = 0;
+//     unsigned count_face_read = 0;
+//     unsigned count_halfedge_read = 0;
+//     int edge[3];
+//     string sTemp;
+//     bool headChecked = false;
+//     bool vertexEnd = false;
+//     bool pointSettled = false;
+//     bool dataSettled = false;
+//     while (wrlFile >> sTemp)
+//     {
+//         //head check
+//         if (!headChecked) {
+//             if ("[" == sTemp || "point[" == sTemp) {
+//                 fireHead += sTemp;
+//                 if (checkHead(fireHead)) {
+//                     headChecked = true;
+//                     continue;
+//                 }
+//                 else return -1;
+//             }
+//             else fireHead += sTemp;
+//         }
+//         //set point coordinate
+//         if (headChecked && !pointSettled) {
+//             if (vertexEnd) {
+//                 faceStart += sTemp;
+//                 if (checkFace(faceStart))
+//                     pointSettled = true;
+//                 else if (wrlFile.eof() && !checkFace(faceStart))
+//                     return -2;
+//                 continue;
+//             }
+
+//             if ("]" == sTemp) {
+//                 vertexEnd = true;
+//                 continue;
+//             }
+//             if (0 == count_vertex_read % 3)
+//                 vertex_temp.x = stringToDouble(sTemp);
+//             if (1 == count_vertex_read % 3)
+//                 vertex_temp.y = stringToDouble(sTemp);
+//             if (2 == count_vertex_read % 3) {
+//                 vertex_temp.z = stringToDouble(sTemp);
+//                 (*mesh).vertex.push_back(vertex_temp);
+//                 (*mesh).vertex[count_vertex_read / 3].number = count_vertex_read / 3;
+//             }
+//             count_vertex_read++;
+//         }
+//         //set face and halfedge
+//         if (pointSettled && !dataSettled){
+//             if ("]" == sTemp) {
+//                 findTwin(mesh,count_halfedge_read);
+//                 //findOrigin(vector<HalfEdge_halfedge> halfedge, vector<HalfEdge_vertex> vertex);
+//                 dataSettled = true;
+//                 continue;
+//             }
+//             else if ("-1" == sTemp) {
+//                 HalfEdge_halfedge edge_temp1;
+//                 HalfEdge_halfedge edge_temp2;
+//                 HalfEdge_halfedge edge_temp3;
+//                 HalfEdge_face face_temp;
+//                 (*mesh).halfedge.push_back(edge_temp1);
+//                 (*mesh).halfedge.push_back(edge_temp2);
+//                 (*mesh).halfedge.push_back(edge_temp3);
+//                 //face
+//                 (*mesh).face.push_back(face_temp);
+//                 (*mesh).face[count_face_read].boundary = &(*mesh).halfedge[count_halfedge_read - 3];
+//                 //halfedge's origin & vertexs
+//                 (*mesh).halfedge[count_halfedge_read - 3].origin = &(*mesh).vertex[edge[0]];
+//                 if (!(*mesh).vertex[edge[0]].beenOrigined) {
+//                     (*mesh).vertex[edge[0]].asOrigin = &(*mesh).halfedge[count_halfedge_read - 3];
+//                     (*mesh).vertex[edge[0]].beenOrigined = true;
+//                 }
+//                 ((*mesh).halfedge[count_halfedge_read - 2]).origin = &(*mesh).vertex[edge[1]];
+//                 if (!(*mesh).vertex[edge[1]].beenOrigined) {
+//                     (*mesh).vertex[edge[1]].asOrigin = &(*mesh).halfedge[count_halfedge_read - 2];
+//                     (*mesh).vertex[edge[1]].beenOrigined = true;
+//                 }
+//                 (*mesh).halfedge[count_halfedge_read - 1].origin = &(*mesh).vertex[edge[2]];
+//                 if (!(*mesh).vertex[edge[2]].beenOrigined){
+//                     (*mesh).vertex[edge[2]].asOrigin = &(*mesh).halfedge[count_halfedge_read - 1];
+//                     (*mesh).vertex[edge[2]].beenOrigined = true;
+//                 }
+//                 //halfedge's nextedge
+//                 (*mesh).halfedge[count_halfedge_read - 3].nextEdge = &(*mesh).halfedge[count_halfedge_read - 2];
+//                 (*mesh).halfedge[count_halfedge_read - 2].nextEdge = &(*mesh).halfedge[count_halfedge_read - 1];
+//                 (*mesh).halfedge[count_halfedge_read - 1].nextEdge = &(*mesh).halfedge[count_halfedge_read - 3];
+//                 //halfedge's preedge
+//                 (*mesh).halfedge[count_halfedge_read - 3].preEdge = &(*mesh).halfedge[count_halfedge_read - 1];
+//                 (*mesh).halfedge[count_halfedge_read - 2].preEdge = &(*mesh).halfedge[count_halfedge_read - 3];
+//                 (*mesh).halfedge[count_halfedge_read - 1].preEdge = &(*mesh).halfedge[count_halfedge_read - 2];
+//                 //halfedge's incidentface
+//                 (*mesh).halfedge[count_halfedge_read - 3].incidentFace = &(*mesh).face[count_face_read];
+//                 (*mesh).halfedge[count_halfedge_read - 2].incidentFace = &(*mesh).face[count_face_read];
+//                 (*mesh).halfedge[count_halfedge_read - 1].incidentFace = &(*mesh).face[count_face_read];
+//                 //halfedge's name
+//                 (*mesh).halfedge[count_halfedge_read - 3].number = count_halfedge_read - 3;
+//                 (*mesh).halfedge[count_halfedge_read - 2].number = count_halfedge_read - 2;
+//                 (*mesh).halfedge[count_halfedge_read - 1].number = count_halfedge_read - 1;
+//                 count_face_read++;
+//             }
+//             //a set contains three vertexs
+//             else if (0 == count_halfedge_read % 3) {
+//                 edge[0] = stringToInt(sTemp);
+//                 count_halfedge_read++;
+//             }
+//             else if (1 == count_halfedge_read % 3) {
+//                 edge[1] = stringToInt(sTemp);
+//                 count_halfedge_read++;
+//             }
+//             else if (2 == count_halfedge_read % 3) {
+//                 edge[2] = stringToInt(sTemp);
+//                 count_halfedge_read++;
+//             }
+//         }
+//         //end check
+//         if (dataSettled) {
+//             fireEnd += sTemp;
+//             if (checkEnd(fireEnd)) {
+//                 setNormal(mesh);
+//                 setCrease(mesh);
+//                 break;
+//             }
+//             else if (wrlFile.eof() && !checkEnd(fireEnd))
+//                 return -3;
+//         }
+//     }
+//     halfedgeNumber = count_halfedge_read;
+//     vertexNumber = count_vertex_read / 3;
+//     faceNumber = count_face_read;
+//     wrlFile.close();
+//     return 0;
+// }
 
 int main() {
     GLint success = 0;
-    Window window(&success, "A-6-TerrianEngine", 800, 600);
+    Window window(&success, "A-4-LoopSubdivision", 800, 600);
     if (success != 1) {
         log_fatal("Failed to create GLFW window");
         return -1;
@@ -58,38 +257,15 @@ int main() {
 
     Camera &camera = window.camera;
     {
-        camera.setPosition(glm::vec3(0.0f, 10.0f, 200.0f));
+        camera.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+        camera.setMovementSpeed(15);
         camera.setMaxRenderDistance(1e8f);
     }
 
-    Scene scene;
-    SkyBox skybox;
-    {
-        skybox.SetShaderPath("assets/shaders/skybox.vs", "assets/shaders/skybox.fs");
-        skybox.SetTopImagePath("assets/textures/SkyBox4.bmp");
-        skybox.SetNorthImagePath("assets/textures/SkyBox0.bmp");
-        skybox.SetEastImagePath("assets/textures/SkyBox1.bmp", -90);
-        skybox.SetSouthImagePath("assets/textures/SkyBox2.bmp");
-        skybox.SetWestImagePath("assets/textures/SkyBox3.bmp", -90);
-        skybox.SetBottomImagePath("assets/textures/SkyBox5.bmp");
-        GLfloat skyBoxWidth = 1e4f; // Big value (likes 1e5f) will meet precision limit when testing depth
-        skybox.SetBoxWidth(skyBoxWidth);
-        skybox.MoveWith(glm::vec3(0.0f, skyBoxWidth/2, 0.0f));
-        skybox.Setup();
-    }
-
-    Terrian terrian;
-    {
-        terrian.SetShaderPath(
-            "assets/shaders/terrian.vs", "assets/shaders/terrian.fs",
-            "assets/shaders/terrian.tcs", "assets/shaders/terrian.tes"
-        );
-        terrian.SetHeightMapPath("assets/textures/heightmap.bmp");
-        terrian.SetTexturePath("assets/textures/terrain-texture3.bmp");
-        terrian.SetDetailTexturePath("assets/textures/detail.bmp");
-        terrian.MoveWith(glm::vec3(0.0f, -2.0f, 0.0f));
-        terrian.Setup();
-    }
+    Mesh mesh;
+    mesh.SetMeshPath("assets/meshs/wrlcube.obj");
+    mesh.SetShaderPath("assets/shaders/mesh.vs", "assets/shaders/mesh.fs");
+    mesh.Setup();
 
     GUI gui(window);
     {
@@ -110,7 +286,6 @@ int main() {
             ImGui::Text("Press Tab to enter god mod");
             ImGui::End();
         });
-        gui.subscribe(&terrian);
     }
 
     double now;
@@ -125,12 +300,11 @@ int main() {
 
         ////// Update Logic
         window.processInput(deltaUpdateTime, deltaRenderTime);
-        skybox.update(now, deltaUpdateTime);
-        terrian.update(now, deltaUpdateTime);
+        mesh.update(now, deltaUpdateTime);
         gui.update();
 
         ////// Render Frame
-        glClearColor(0, 0, 0., 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         float screenRatio = (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT;
         glm::mat4 projection = camera.GetProjectionMatrix(lastRenderTime, now, screenRatio);
@@ -138,9 +312,7 @@ int main() {
         // render object first
         for (int i = 0; i < smileBoxs.size(); i++)
             smileBoxs[i].render(now, deltaRenderTime, view, projection);
-        terrian.render(now, deltaRenderTime, view, projection);
-        // then render transparent object (water)
-        skybox.render(now, deltaRenderTime, view, projection);
+        mesh.render(now, deltaRenderTime, view, projection);
         // finally render GUI
         gui.render(window.w, lastRenderTime, now);
 
