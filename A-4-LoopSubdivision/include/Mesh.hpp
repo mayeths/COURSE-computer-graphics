@@ -250,10 +250,17 @@ public:
         this->shader.setVec4("color", this->color);
         glDrawArrays(GL_TRIANGLES, 0, this->mesh.face.size() * 3);
 
-        glBindVertexArray(this->lineVAO.get());
-        this->shader.setVec4("color", glm::vec4(1, 1, 1, 1.0f));
-        glDrawArrays(GL_LINES, 0, this->mesh.face.size() * 6);
-        glBindVertexArray(0);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        {
+            this->shader.setVec4("color", glm::vec4(1, 1, 1, 1.0f));
+            glDrawArrays(GL_TRIANGLES, 0, this->mesh.face.size() * 3);
+        }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        // glBindVertexArray(this->lineVAO.get());
+        // this->shader.setVec4("color", glm::vec4(1, 1, 1, 1.0f));
+        // glDrawArrays(GL_LINES, 0, this->mesh.face.size() * 6);
+        // glBindVertexArray(0);
     }
 
 };
