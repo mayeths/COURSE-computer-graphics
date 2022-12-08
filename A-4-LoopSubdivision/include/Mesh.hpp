@@ -44,13 +44,12 @@ struct edge_t {
     edge_t *preEdge= nullptr;
     vertex_t *insert = nullptr; //record new vertex
     bool isCrease = false; // artificially specify a cease or boundary
-    bool CreaseChecked = false;
 };
 
 struct mesh_t {
-    uint32_t uuid_vnext;
-    uint32_t uuid_enext;
-    uint32_t uuid_fnext;
+    uint32_t uuid_v;
+    uint32_t uuid_e;
+    uint32_t uuid_f;
     std::vector<vertex_t> vertices;
     std::vector<edge_t> edges;
     std::vector<face_t> faces;
@@ -126,7 +125,7 @@ public:
             vertex.position.x = positions[0];
             vertex.position.y = positions[1];
             vertex.position.z = positions[2];
-            vertex.ID = i;
+            vertex.ID = mesh.uuid_v++;
         }
         for (size_t i = 0; i < nfaces; i++) {
             std::array<int, 3> points = this->faces[i];
@@ -165,10 +164,10 @@ public:
             edge0.incidentFace = &face;
             edge1.incidentFace = &face;
             edge2.incidentFace = &face;
-            face.ID = i;
-            edge0.ID = i * 3 + 0;
-            edge1.ID = i * 3 + 1;
-            edge2.ID = i * 3 + 2;
+            face.ID = mesh.uuid_f++;
+            edge0.ID = mesh.uuid_e++;
+            edge1.ID = mesh.uuid_e++;
+            edge2.ID = mesh.uuid_e++;
         }
 
         this->setNormal(&mesh);
@@ -293,7 +292,7 @@ public:
             insertV.position.x = this->loopFomular(&edge, 'x');
             insertV.position.y = this->loopFomular(&edge, 'y');
             insertV.position.z = this->loopFomular(&edge, 'z');
-            insertV.ID = vertex_count;
+            insertV.ID = fine.uuid_v++;
             vertex_count += 1;
             edge.insert = &insertV;
             if (edge.twin != nullptr)
@@ -328,7 +327,7 @@ public:
             vertexUpdate.position.x = this->adjustFomular(&vertexUpdate, valences, 'x', neighbour);
             vertexUpdate.position.y = this->adjustFomular(&vertexUpdate, valences, 'y', neighbour);
             vertexUpdate.position.z = this->adjustFomular(&vertexUpdate, valences, 'z', neighbour);
-            vertex.ID = vertex_count;
+            vertexUpdate.ID = fine.uuid_v++;
             fine.vertices.push_back(vertexUpdate);
             coarse.vertices[i].adjust = &fine.vertices.back();
             vertex_count += 1;
@@ -491,19 +490,19 @@ public:
     void setNormal(mesh_t *mesh)
     {
         uint32_t i = 0;
-        log_trace("total face %d", (*mesh).faces.size());
+        // log_trace("total face %d", (*mesh).faces.size());
         for (auto it = (*mesh).faces.begin(); it != (*mesh).faces.end(); it++, i++) {
-            log_trace("face %p(%u)", it, (*it).ID);
+            // log_trace("face %p(%u)", it, (*it).ID);
             edge_t *origin = (*it).boundary;
-            log_trace("    boundary %p(%u)", origin, (*origin).ID);
+            // log_trace("    boundary %p(%u)", origin, (*origin).ID);
             // v1 is first vector of the face, v2 is the second vector, vn is the normal
             glm::vec3 v1, v2, vn;
             vertex_t &p0 = *(*origin).origin;
-            log_trace("    p0 %p(%u)", &p0, p0.ID);
+            // log_trace("    p0 %p(%u)", &p0, p0.ID);
             vertex_t &p1 = *(*(*origin).nextEdge).origin;
-            log_trace("    p1 %p(%u)", &p1, p1.ID);
+            // log_trace("    p1 %p(%u)", &p1, p1.ID);
             vertex_t &p2 = *(*(*origin).preEdge).origin;
-            log_trace("    p2 %p(%u)", &p2, p2.ID);
+            // log_trace("    p2 %p(%u)", &p2, p2.ID);
             double length;
             //compute normal
             v1.x = p0.position.x - p1.position.x;
@@ -533,28 +532,29 @@ public:
         double length2 = sqrt((v1.x * v1.x) + (v1.y * v1.y) + (v1.z * v1.z));
         return ((v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) / (length1 * length2));
     }
-    //set crease
+
     void setCrease(mesh_t *mesh)
     {
-        for (auto it = (*mesh).edges.begin(); it != (*mesh).edges.end(); it++) {
-            if ((*it).CreaseChecked)
+        std::map<const edge_t *, bool> checked;
+        for (int i= 0; i < mesh->edges.size(); i++) {
+            edge_t *edge = &mesh->edges[i];
+            if (checked[edge])
                 continue;
-            // log_trace("edge %p(%u)", it, (*it).ID);
-            glm::vec3 &normal0 = (*(*it).incidentFace).normal;
-            // log_trace("    incidentFace %p(%u)", (*(*it).incidentFace), (*(*it).incidentFace).ID);
-            glm::vec3 &normal1 = (*(*(*it).twin).incidentFace).normal;
-            // log_trace("    twinFace %p(%u)", (*(*(*it).twin).incidentFace), (*(*(*it).twin).incidentFace).ID);
-            //the function acos return Arc system
-            double angle = acos(vectorAngle(normal0, normal1)) * 180.0 / M_PI;
-            /*how to know it is a crease*/
-            if (angle >= 150.0) {
-                (*it).isCrease = true;
-                (*(*it).twin).isCrease = true;
+
+            glm::vec3 normal0 = glm::normalize(edge->incidentFace->normal);
+            glm::vec3 normal1 = glm::normalize(edge->twin->incidentFace->normal);
+            double degrees = glm::degrees(glm::acos(glm::dot(normal0, normal1)));
+
+            if (degrees >= 150) {
+                edge->isCrease = true;
+                edge->twin->isCrease = true;
+            } else {
+                edge->isCrease = false;
+                edge->twin->isCrease = false;
             }
-            (*it).CreaseChecked = true;
-            (*(*it).twin).CreaseChecked = true;
+            checked[edge] = true;
+            checked[edge->twin] = true;
         }
     }
-
 
 };
