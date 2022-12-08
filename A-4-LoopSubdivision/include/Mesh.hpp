@@ -66,6 +66,7 @@ public:
     int nowKeyQState = GLFW_RELEASE;
     int nowKeyEState = GLFW_RELEASE;
     glm::vec4 color = glm::vec4(0, 0, 0, 1.0);
+    double boundingBoxSize = 10;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath)
     {
@@ -75,10 +76,13 @@ public:
     void SetMeshPath(const std::string &meshPath) {
         this->meshPath = meshPath;
     }
+    void SetBoundingBoxSize(double boundingBoxSize) {
+        this->boundingBoxSize = boundingBoxSize;
+    }
 
     void Setup() {
         this->shader.Setup();
-        auto pair = this->LoadMeshfile(this->meshPath);
+        auto pair = this->LoadMeshfile(this->meshPath, boundingBoxSize);
         std::vector<std::array<double, 3>> vertices = pair.first;
         std::vector<std::array<int, 3>> faces = pair.second;
 
@@ -518,8 +522,8 @@ public:
         }
     }
 
-    static std::pair<std::vector<std::array<double, 3>>, std::vector<std::array<int, 3>>>
-    LoadMeshfile(const std::string &path) {
+    std::pair<std::vector<std::array<double, 3>>, std::vector<std::array<int, 3>>>
+    LoadMeshfile(const std::string &path, const double boundingBoxSize) {
         std::vector<std::array<double, 3>> vertices;
         std::vector<std::array<int, 3>> faces;
         
@@ -532,6 +536,15 @@ public:
             return std::make_pair(vertices, faces);
         }
 
+        int offset = 0;
+        if (path.find(".0.mesh") != std::string::npos) {
+            offset = 0;
+        } else if (path.find(".1.mesh") != std::string::npos) {
+            offset = 1;
+        }
+
+        std::array<double, 3> maxcoords;
+        std::array<double, 3> mincoords;
         std::string line;
         while (std::getline(fin, line)) {
             if (line.size() == 0) continue;
@@ -542,12 +555,33 @@ public:
             if (t == 'v') {
                 std::array<double, 3> positions;
                 instring >> positions[0] >> positions[1] >> positions[2];
+                mincoords[0] = std::min(mincoords[0], positions[0]);
+                mincoords[1] = std::min(mincoords[1], positions[1]);
+                mincoords[2] = std::min(mincoords[2], positions[2]);
+                maxcoords[0] = std::max(maxcoords[0], positions[0]);
+                maxcoords[1] = std::max(maxcoords[1], positions[1]);
+                maxcoords[2] = std::max(maxcoords[2], positions[2]);
                 vertices.push_back(std::move(positions));
             } else if (t == 'f') {
-                std::array<int, 3> vertexs;
-                instring >> vertexs[0] >> vertexs[1] >> vertexs[2];
-                faces.push_back(std::move(vertexs));
+                std::array<int, 3> indexs;
+                instring >> indexs[0] >> indexs[1] >> indexs[2];
+                indexs[0] -= offset;
+                indexs[1] -= offset;
+                indexs[2] -= offset;
+                faces.push_back(std::move(indexs));
             }
+        }
+
+        double bounding = 0;
+        bounding = std::max(bounding, maxcoords[0] - mincoords[0]);
+        bounding = std::max(bounding, maxcoords[1] - mincoords[1]);
+        bounding = std::max(bounding, maxcoords[2] - mincoords[2]);
+        assert(bounding != 0);
+        double scale = boundingBoxSize / bounding;
+        for (int i = 0; i < vertices.size(); i++) {
+            vertices[i][0] *= scale;
+            vertices[i][1] *= scale;
+            vertices[i][2] *= scale;
         }
 
         fin.close();

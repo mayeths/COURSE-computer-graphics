@@ -40,18 +40,18 @@ int main() {
         smileBoxs[i].Setup(i);
 
         std::vector<glm::vec3> cubePositions {
-            glm::vec3(0.0f * 2, -1.0f, -3.0f),
-            glm::vec3(1.0f * 2, -1.0f, -3.0f),
-            glm::vec3(2.0f * 2, -1.0f, -3.0f),
-            glm::vec3(3.0f * 2, -1.0f, -3.0f),
-            glm::vec3(0.0f * 2,  0.0f, -3.0f),
-            glm::vec3(1.0f * 2,  0.0f, -3.0f),
-            glm::vec3(2.0f * 2,  0.0f, -3.0f),
-            glm::vec3(3.0f * 2,  0.0f, -3.0f),
-            glm::vec3(0.0f * 2, +1.0f, -3.0f),
-            glm::vec3(1.0f * 2, +1.0f, -3.0f),
-            glm::vec3(2.0f * 2, +1.0f, -3.0f),
-            glm::vec3(3.0f * 2, +1.0f, -3.0f),
+            glm::vec3(0.0f * 2, -1.0f, -40.0f),
+            glm::vec3(1.0f * 2, -1.0f, -40.0f),
+            glm::vec3(2.0f * 2, -1.0f, -40.0f),
+            glm::vec3(3.0f * 2, -1.0f, -40.0f),
+            glm::vec3(0.0f * 2,  0.0f, -40.0f),
+            glm::vec3(1.0f * 2,  0.0f, -40.0f),
+            glm::vec3(2.0f * 2,  0.0f, -40.0f),
+            glm::vec3(3.0f * 2,  0.0f, -40.0f),
+            glm::vec3(0.0f * 2, +1.0f, -40.0f),
+            glm::vec3(1.0f * 2, +1.0f, -40.0f),
+            glm::vec3(2.0f * 2, +1.0f, -40.0f),
+            glm::vec3(3.0f * 2, +1.0f, -40.0f),
         };
         assert(smileBoxs.size() <= cubePositions.size());
         smileBoxs[i].MoveTo(cubePositions[i]);
@@ -65,8 +65,10 @@ int main() {
     }
 
     Mesh mesh;
-    mesh.SetMeshPath("assets/meshs/wrlcube.obj");
+    mesh.SetMeshPath("assets/meshs/cow.1.mesh");
     mesh.SetShaderPath("assets/shaders/mesh.vs", "assets/shaders/mesh.fs");
+    mesh.SetBoundingBoxSize(10.0);
+    mesh.MoveTo(glm::vec3(0, 0, -10));
     mesh.Setup();
 
     GUI gui(window);
