@@ -14,8 +14,8 @@
 #include "util/raii.hpp"
 #include "util/log.h"
 #include "framework/Shader.hpp"
-#include "object/RenderableObject.hpp"
-#include "object/UpdatableObject.hpp"
+#include "framework/Object.hpp"
+#include "framework/GUI.hpp"
 
 struct vertex_t;
 struct edge_t;
@@ -52,7 +52,7 @@ struct mesh_t {
     std::vector<face_t> faces;
 };
 
-class Mesh : public RenderableObject, UpdatableObject
+class Mesh : public Object, public GUIHandler
 {
     guard_t guard;
 public:
@@ -598,6 +598,20 @@ public:
 
         fin.close();
         return std::make_pair(vertices, faces);
+    }
+
+    virtual void refresh(double now, double lastTime, GLFWwindow *window)
+    {
+        int width = 0;
+        int height = 0;
+        glfwGetWindowSize(window, &width, &height);
+        ImGui::SetNextWindowPos(ImVec2(width - 360, 0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("Tips", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
+        ImGui::Text("Press Q to switch to coarse mesh");
+        ImGui::Text("Press E to switch to fine mesh (Loop Subdivision)");
+        ImGui::Text("Current mesh index: %d of %d", (int)this->curr+1, (int)this->meshs.size());
+        ImGui::End();
     }
 
 };

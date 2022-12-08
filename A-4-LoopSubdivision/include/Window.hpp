@@ -9,36 +9,38 @@
 #include <vector>
 #include <queue>
 #include <limits>
+#include <set>
 
 #include "framework/Camera.hpp"
-#include "object/BaseObject.hpp"
+#include "framework/GUI.hpp"
+#include "framework/Object.hpp"
 #include "util/log.h"
+#define MEMORY_IMPL
+#include "util/memory.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "util/stb_image.h"
+
 
 class Window {
 public:
-    enum class KeyState : bool
-    {
-        STATE_RELEASE, STATE_PRESS
-    };
+    static const int STAT_FPS = 0x1;
+    static const int STAT_POSITION = 0x2;
+    static const int STAT_MEMORY = 0x4;
+    int statistic = 0;
 
     uint32_t SCR_WIDTH  = 1600;
     uint32_t SCR_HEIGHT = 900;
     static inline std::string name = "Mayeths' OpenGL Program";
     GLFWwindow* w;
     Camera camera;
-    bool firstMouse = true;
-    bool keyTabStillPressing = false;
-    bool inGodMod = false;
+    GUI gui;
+    std::set<Object *> objects;
     float mouseLastX =  800.0f / 2.0;
     float mouseLastY =  600.0 / 2.0;
-
-    bool enableInputListening = true;
+    bool firstMouse = true;
     bool enableKeyListening = true;
-
-    std::vector<KeyState> keystate1;
-    std::vector<KeyState> keystate2;
-    std::vector<KeyState> *keystate = &keystate1;
-    std::vector<KeyState> *old_keystate = &keystate2;
+    bool keyTabStillPressing = false;
+    bool inGodMod = false;
 
 public:
     // initializer
@@ -50,16 +52,12 @@ public:
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);                // comment this line in a release build!
-        this->keystate1.resize(1024, KeyState::STATE_RELEASE);
-        this->keystate2.resize(1024, KeyState::STATE_RELEASE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);  // Enable OpenGL debug
 
-        // glfwWindowHint(GLFW_SAMPLES, 4);
-        // glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
-
-        // glfw window creation
         this->w = glfwCreateWindow(scrW, scrH, name.c_str(), NULL, NULL);
         if (!this->w) {
             log_fatal("Failed to create GLFW window");
@@ -70,11 +68,8 @@ public:
         glfwMakeContextCurrent(this->w);
         glfwSetWindowUserPointer(this->w, this);
 
-        *success = gladLoader() && *success;
-        if (*success) {
-            Window::printInfomation();
-            log_debug("GLFW window initialized");
-        } else {
+        *success = glad_loader() && *success;
+        if (!*success) {
             log_fatal("Cannot initialize GLFW window");
             glfwTerminate();
             return;
@@ -87,14 +82,18 @@ public:
         glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glEnable(GL_DEPTH_TEST);
 
-        camera.setPosition(Camera::INIT_POSITION)
-            .setLookAtTarget(Camera::INIT_FRONT)
-        ;
+        this->camera.setPosition(Camera::INIT_POSITION);
+        this->camera.setLookAtTarget(Camera::INIT_FRONT);
+        this->gui.setup(this->w);
+        this->gui.subscribe(Window::gui_callback);
+
+        Window::print_infomation();
+        log_debug("GLFW window initialized");
     }
 
     ~Window()
     {
-        this->terminate();
+        this->Terminate();
     }
 
     void processInput(float deltaUpdateTime, float deltaRenderTime)
@@ -133,23 +132,56 @@ public:
         if (keyESC) glfwSetWindowShouldClose(this->w, true);
     }
 
-    int gladLoader()
+    void Terminate()
+    {
+        glfwTerminate();
+    }
+
+    bool ContinueLoop()
+    {
+        return !glfwWindowShouldClose(this->w);
+    }
+
+    void TriggerRender(double now, double lastRenderTime)
+    {
+        gui.refresh(now, lastRenderTime);
+    }
+
+    void SwapBuffersAndPollEvents()
+    {
+        glfwSwapBuffers(this->w);
+        glfwPollEvents();
+    }
+
+    void EnableStatisticGUI(int flag)
+    {
+        this->statistic = flag;
+    }
+
+    void AddObject(Object *object)
+    {
+        this->objects.insert(object);
+    }
+
+    void SubscribeGUI(GUIHandler *handler)
+    {
+        this->gui.subscribe(handler);
+    }
+
+    void SubscribeGUI(GUI::Callback callback, void *data = nullptr)
+    {
+        this->gui.subscribe(callback, data);
+    }
+
+    /***** utility functions *****/
+
+    static int glad_loader()
     {
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
             log_fatal("Failed to initialize GLAD");
             return 0;
         }
         return 1;
-    }
-
-    // screen settings
-    void terminate()
-    {
-        glfwTerminate();
-    }
-
-    bool continueLoop() {
-        return !glfwWindowShouldClose(this->w);
     }
 
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -160,7 +192,6 @@ public:
         self->SCR_HEIGHT = height;
     }
 
-    // glfw: whenever the mouse moves, this callback is called
     static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     {
         Window *self = (Window *)glfwGetWindowUserPointer(window);
@@ -194,36 +225,50 @@ public:
     static void focus_callback(GLFWwindow* window, int focused)
     {
         Window *self = (Window *)glfwGetWindowUserPointer(window);
-        if (focused) {
-            self->enableKeyListening = true;
-        } else {
-            std::fill((*self->keystate).begin(), (*self->keystate).end(), KeyState::STATE_RELEASE);
-            self->enableKeyListening = false;
+        self->enableKeyListening = (bool)focused;
+    }
+
+    static void gui_callback(double now, double lastTime, GLFWwindow *window, void *data)
+    {
+        Window *self = (Window *)glfwGetWindowUserPointer(window);
+
+        ImGui::SetNextWindowPos(ImVec2(0, 60), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+        ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("Statistic", NULL,
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoSavedSettings
+        );
+        ImGui::Text("Press Tab to enable/disable mouse");
+        if (self->statistic & Window::STAT_FPS)
+            ImGui::Text("FPS: %2.0f ", 1 / (now - lastTime));
+        if (self->statistic & Window::STAT_MEMORY) {
+            ImGui::SameLine();
+            ImGui::Text("Memory: %s", readable_size(allocated_bytes).c_str());
         }
+        if (self->statistic & Window::STAT_POSITION) {
+            glm::vec3 pos = self->camera.Position;
+            ImGui::Text("Camera Position: %2.0f %2.0f %2.0f", pos[0], pos[1], pos[2]);
+        }
+        ImVec2 window1_size = ImGui::GetWindowSize();
+        ImGui::End();
     }
 
-    // put this at the end of the main
-    void swapBuffersAndPollEvents() {
-        glfwSwapBuffers(this->w);
-        glfwPollEvents();
-    }
-
-    static void printInfomation()
+    static void print_infomation()
     {
         GLint GLmajor = 0, GLminor = 0, GLrev = 0, flags = 0;
         glGetIntegerv(GL_MAJOR_VERSION, &GLmajor);
         glGetIntegerv(GL_MINOR_VERSION, &GLminor);
         glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &GLrev);
         glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-        log_debug("OpenGL version: %d.%d.%d", GLmajor, GLminor, GLrev);
+        log_info("OpenGL version: %d.%d.%d", GLmajor, GLminor, GLrev);
 
         int major = 0, minor = 0, rev = 0;
         glfwGetVersion(&major, &minor, &rev);
-        log_debug("GLFW version: %d.%d.%d", major, minor, rev);
+        log_info("GLFW version: %d.%d.%d", major, minor, rev);
 
         GLint maxTessLevel = 0;
         glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
-        log_debug("Max available tess level: %d", maxTessLevel);
+        log_info("Max available tess level: %d", maxTessLevel);
     }
 
 };

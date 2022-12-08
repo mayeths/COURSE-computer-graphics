@@ -2,7 +2,7 @@
 
 #include "framework/Shader.hpp"
 #include "framework/Texture.hpp"
-#include "object/RenderableObject.hpp"
+#include "framework/Object.hpp"
 #include "util/raii.hpp"
 
 // https://community.khronos.org/t/how-to-make-array-of-sampler2d-uniforms/52862/3
@@ -10,7 +10,7 @@
 // https://www.khronos.org/opengl/wiki/Array_Texture
 // https://stackoverflow.com/questions/73546924/how-to-use-gl-texture-2d-array-with-stb-image
 
-class SmileBox : public RenderableObject
+class SmileBox : public Object
 {
 public:
     Shader shader;

@@ -12,17 +12,15 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "BaseObject.hpp"
-
-class RenderableObject : public BaseObject
+class Object
 {
 public:
     glm::vec3 position     = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     GLfloat rotationAngle  = 0; /* in radians */
 public:
-    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) = 0;
-    virtual const char *GetObjectTypeName() { return "RenderableObject"; }
+    virtual void update(double now, double lastUpdateTime, GLFWwindow *window) {}
+    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {}
 
     void MoveTo(glm::vec3 newPosition)
     {

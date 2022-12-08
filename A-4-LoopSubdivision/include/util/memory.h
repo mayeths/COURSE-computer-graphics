@@ -10,7 +10,8 @@ struct mem_trace {
     char content[0];
 };
 
-#ifdef MEMORY_IMPL
+#if defined(MEMORY_IMPL) && !defined(MEMORY_IMPL_ONCE)
+#define MEMORY_IMPL_ONCE
 size_t allocated_bytes = 0;
 #else
 extern size_t allocated_bytes = 0;

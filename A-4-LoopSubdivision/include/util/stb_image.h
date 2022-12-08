@@ -541,7 +541,8 @@ STBIDEF int   stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const ch
 ////   end header file   /////////////////////////////////////////////////////
 #endif // STBI_INCLUDE_STB_IMAGE_H
 
-#ifdef STB_IMAGE_IMPLEMENTATION
+#if defined(STB_IMAGE_IMPLEMENTATION) && !defined(STB_IMAGE_IMPLEMENTATION_ONCE)
+#define STB_IMAGE_IMPLEMENTATION_ONCE
 
 #if defined(STBI_ONLY_JPEG) || defined(STBI_ONLY_PNG) || defined(STBI_ONLY_BMP) \
   || defined(STBI_ONLY_TGA) || defined(STBI_ONLY_GIF) || defined(STBI_ONLY_PSD) \

@@ -12,15 +12,11 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "util/log.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "util/stb_image.h"
-#define MEMORY_IMPL
-#include "util/memory.h"
 
-#include "Window.hpp"
 #include "framework/GUI.hpp"
 #include "framework/Shader.hpp"
+#include "util/log.h"
+#include "Window.hpp"
 #include "Mesh.hpp"
 #include "SmileBox.hpp"
 
@@ -31,6 +27,7 @@ int main() {
         log_fatal("Failed to create GLFW window");
         return -1;
     }
+    window.EnableStatisticGUI(Window::STAT_FPS | Window::STAT_MEMORY | Window::STAT_POSITION);
 
     std::vector<SmileBox> smileBoxs(12);
     for (int i = 0; i < smileBoxs.size(); i++) {
@@ -70,36 +67,13 @@ int main() {
     mesh.MoveTo(glm::vec3(0, 0, -10));
     mesh.Setup();
 
-    GUI gui(window.w);
-    {
-        gui.subscribe([&](double now, double lastTime, GLFWwindow *w) {
-            ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-            ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
-            ImGui::SameLine();
-            ImGui::Text("%2.0f FPS", 1 / (now - lastTime));
-            ImGui::Text("%s", readable_size(allocated_bytes).c_str());
-            ImVec2 window1_size = ImGui::GetWindowSize();
-            ImGui::SetWindowPos(ImVec2(window.SCR_WIDTH - window1_size.x, 0), ImGuiCond_Always);
-            ImGui::End();
-        });
-        gui.subscribe([&](double now, double lastTime, GLFWwindow *w) {
-            glm::vec3 cameraPos = camera.Position;
-            ImGui::SetNextWindowPos(ImVec2(0, 94), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
-            ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-            ImGui::Begin("Tips", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-            ImGui::Text("Position %2.0f %2.0f %2.0f", cameraPos[0], cameraPos[1], cameraPos[2]);
-            ImGui::Text("Press Tab to enable/disable mouse");
-            ImGui::Text("Press Q to switch to coarse mesh");
-            ImGui::Text("Press E to switch to fine mesh (Loop Subdivision)");
-            ImGui::Text("Current mesh index: %d of %d", (int)mesh.curr+1, (int)mesh.meshs.size());
-            ImGui::End();
-        });
-    }
+    window.AddObject(&mesh);
+    window.SubscribeGUI(&mesh);
 
     double now;
     double lastUpdateTime = 0;
     double lastRenderTime = 0;
-    while (window.continueLoop()) {
+    while (window.ContinueLoop()) {
         lastRenderTime = now;
         lastUpdateTime = now;
         now = glfwGetTime();
@@ -122,10 +96,10 @@ int main() {
             smileBoxs[i].render(now, lastRenderTime, view, projection);
         mesh.render(now, lastRenderTime, view, projection);
         // finally render GUI
-        gui.refresh(now, lastRenderTime, window.w);
+        window.TriggerRender(now, lastRenderTime);
 
         ////// Finish Render
-        window.swapBuffersAndPollEvents();
+        window.SwapBuffersAndPollEvents();
     }
 
     return 0;
