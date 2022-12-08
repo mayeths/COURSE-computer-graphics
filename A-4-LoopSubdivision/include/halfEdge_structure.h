@@ -127,11 +127,11 @@ void setCrease(HalfEdge_mesh *mesh)
 	for (auto it = (*mesh).halfedge.begin(); it != (*mesh).halfedge.end(); it++) {
 		if ((*it).CreaseChecked)
 			continue;
-		log_trace("halfedge %p(%u)", it, (*it).number);
+		// log_trace("halfedge %p(%u)", it, (*it).number);
 		HalfEdge_normal &normal0 = *(*(*it).incidentFace).normal;
-		log_trace("    incidentFace %p(%u)", (*(*it).incidentFace), (*(*it).incidentFace).number);
+		// log_trace("    incidentFace %p(%u)", (*(*it).incidentFace), (*(*it).incidentFace).number);
 		HalfEdge_normal &normal1 = *(*(*(*it).twin).incidentFace).normal;
-		log_trace("    twinFace %p(%u)", (*(*(*it).twin).incidentFace), (*(*(*it).twin).incidentFace).number);
+		// log_trace("    twinFace %p(%u)", (*(*(*it).twin).incidentFace), (*(*(*it).twin).incidentFace).number);
 		//the function acos return Arc system
 		double angle = acos(vectorAngle(normal0, normal1)) * 180.0 / Pi;
 		/*how to know it is a crease*/

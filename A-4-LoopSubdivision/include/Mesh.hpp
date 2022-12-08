@@ -168,7 +168,7 @@ public:
                 newMesh.face.reserve(oldMesh.face.size() * 8);
                 newMesh.halfedge.reserve(oldMesh.halfedge.size() * 8);
                 newMesh.normal.reserve(oldMesh.normal.size() * 8);
-                loopSubdivision(&oldMesh, &newMesh);
+                this->loopSubdivision(&oldMesh, &newMesh);
             }
         }
         this->curr = targetIndex;
@@ -238,6 +238,200 @@ public:
             glDrawArrays(GL_TRIANGLES, 0, this->meshs[curr].face.size() * 3);
         }
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+
+    void loopSubdivision(HalfEdge_mesh *inputMesh, HalfEdge_mesh *outputMesh)
+    {
+        HalfEdge_mesh &coarse = *inputMesh;
+        HalfEdge_mesh &fine = *outputMesh;
+        unsigned vertex_count = 0;
+        // old vertex
+        for (int i = 0; i < coarse.halfedge.size(); i++) {
+            HalfEdge_halfedge &edge = coarse.halfedge[i];
+            if (edge.insert)
+                continue;
+            fine.vertex.resize(fine.vertex.size() + 1);
+            HalfEdge_vertex &insertV = fine.vertex.back();
+            insertV.x = this->loopFomular(&edge, 'x');
+            insertV.y = this->loopFomular(&edge, 'y');
+            insertV.z = this->loopFomular(&edge, 'z');
+            insertV.number = vertex_count;
+            vertex_count += 1;
+            edge.insert = &insertV;
+            if (edge.twin != nullptr)
+                edge.twin->insert = &insertV;
+        }
+        // even vertex
+        unsigned vertex_count_old = 0;
+        for (int i = 0; i < coarse.vertex.size(); i++) {
+            HalfEdge_vertex &vertex = coarse.vertex[i];
+            HalfEdge_halfedge *find = vertex.asOrigin;
+            std::vector<HalfEdge_vertex> neighbour;
+            unsigned valences = 0;
+            do {
+                valences += 1;
+                neighbour.push_back(*find->insert);
+                if (find->twin == nullptr) {
+                    HalfEdge_halfedge *findBack = vertex.asOrigin->preEdge;
+                    while (findBack != nullptr) {
+                        valences += 1;
+                        neighbour.push_back(*findBack->insert);
+                        if (findBack->twin == nullptr)
+                            break;
+                        findBack = findBack->twin->preEdge;
+                    }
+                    break;
+                }
+                find = find->twin->nextEdge;
+            } while (find != vertex.asOrigin);
+
+            HalfEdge_vertex vertexUpdate;
+            vertexUpdate = vertex;
+            vertexUpdate.x = this->adjustFomular(&vertexUpdate, valences, 'x', neighbour);
+            vertexUpdate.y = this->adjustFomular(&vertexUpdate, valences, 'y', neighbour);
+            vertexUpdate.z = this->adjustFomular(&vertexUpdate, valences, 'z', neighbour);
+            vertex.number = vertex_count;
+            fine.vertex.push_back(vertexUpdate);
+            coarse.vertex[i].adjust = &fine.vertex.back();
+            vertex_count += 1;
+        }
+        // remesh
+        for (int i = 0; i < coarse.face.size(); i++) {
+            HalfEdge_face &face = coarse.face[i];
+            HalfEdge_halfedge e[4][3];
+            HalfEdge_halfedge &e_origin = *face.boundary;
+            HalfEdge_halfedge &e_previous = *e_origin.preEdge;
+            HalfEdge_halfedge &e_next = *e_origin.nextEdge;
+
+            e[0][0].origin = e_origin.insert;
+            e[0][1].origin = (e_next.origin)->adjust;
+            e[0][2].origin = e_next.insert;
+
+            e[1][0].origin = e_next.insert;
+            e[1][1].origin = (e_previous.origin)->adjust;
+            e[1][2].origin = e_previous.insert;
+
+            e[2][0].origin = e_previous.insert;
+            e[2][1].origin = (e_origin.origin)->adjust;
+            e[2][2].origin = e_origin.insert;
+
+            e[3][0].origin = e_origin.insert;
+            e[3][1].origin = e_next.insert;
+            e[3][2].origin = e_previous.insert;
+
+            for (unsigned i = 0; i < 4; i++) {
+                fine.halfedge.push_back(e[i][0]);
+                fine.halfedge.push_back(e[i][1]);
+                fine.halfedge.push_back(e[i][2]);
+                fine.face.resize(fine.face.size() + 1);
+                HalfEdge_halfedge &e0 = fine.halfedge[fine.halfedge.size() - 3];
+                HalfEdge_halfedge &e1 = fine.halfedge[fine.halfedge.size() - 2];
+                HalfEdge_halfedge &e2 = fine.halfedge[fine.halfedge.size() - 1];
+                HalfEdge_face &fine_face = fine.face.back();
+                e0.incidentFace = &fine_face;
+                e1.incidentFace = &fine_face;
+                e2.incidentFace = &fine_face;
+                e0.nextEdge = &e1;
+                e1.nextEdge = &e2;
+                e2.nextEdge = &e0;
+                e0.preEdge = &e2;
+                e1.preEdge = &e0;
+                e2.preEdge = &e1;
+                fine_face.boundary = &e0;
+            }
+
+            e_origin.insert->asOrigin = &fine.halfedge[fine.halfedge.size() - 12];
+            e_next.origin->adjust->asOrigin = &fine.halfedge[fine.halfedge.size() - 11];
+            e_next.insert->asOrigin = &fine.halfedge[fine.halfedge.size() - 10];
+            e_previous.origin->adjust->asOrigin = &fine.halfedge[fine.halfedge.size() - 8];
+            e_previous.insert->asOrigin = &fine.halfedge[fine.halfedge.size() - 7];
+            e_origin.origin->adjust->asOrigin = &fine.halfedge[fine.halfedge.size() - 5];
+        }
+
+        findTwin(outputMesh, outputMesh->halfedge.size());
+        setNormal(outputMesh);
+        setCrease(outputMesh);
+    }
+
+    double loopFomular(HalfEdge_halfedge *insertHalfedge, char direction)
+    {
+        if (insertHalfedge->twin == nullptr || insertHalfedge->isCrease) {
+            HalfEdge_vertex *a = insertHalfedge->origin;
+            HalfEdge_vertex *b = insertHalfedge->nextEdge->origin;
+            if (direction == 'x') {
+                return (a->x + b->x) / 2.0;
+            } else if (direction == 'y') {
+                return (a->y + b->y) / 2.0;
+            } else if (direction == 'z') {
+                return (a->z + b->z) / 2.0;
+            } else {
+                throw std::runtime_error("you should not come here 1.0");
+            }
+        } else {
+            HalfEdge_vertex *a = insertHalfedge->origin;
+            HalfEdge_vertex *b = insertHalfedge->nextEdge->origin;
+            HalfEdge_vertex *c = insertHalfedge->preEdge->origin;
+            HalfEdge_vertex *d = insertHalfedge->twin->preEdge->origin;
+            if (direction == 'x') {
+                return (3.0 / 8.0) * (a->x + b->x) + (1.0 / 8.0) * (c->x + d->x);
+            } else if (direction == 'y') {
+                return (3.0 / 8.0) * (a->y + b->y) + (1.0 / 8.0) * (c->y + d->y);
+            } else if (direction == 'z') {
+                return (3.0 / 8.0) * (a->z + b->z) + (1.0 / 8.0) * (c->z + d->z);
+            } else {
+                throw std::runtime_error("you should not come here 2.0");
+            }
+        }
+    }
+
+    double adjustFomular(HalfEdge_vertex *v, unsigned valence, char direction, vector<HalfEdge_vertex> neighbour)
+    {
+        HalfEdge_halfedge *edge = v->asOrigin;
+        if (edge->twin == nullptr || edge->isCrease) {
+            HalfEdge_vertex *a = edge->insert;
+            HalfEdge_vertex *b = edge->preEdge->insert;
+            if (direction == 'x')
+                return (1.0 / 8.0) * (a->x + b->x) + (3.0 / 4.0) * (v->x);
+            else if (direction == 'y')
+                return (1.0 / 8.0) * (a->y + b->y) + (3.0 / 4.0) * (v->y);
+            else if (direction == 'z')
+                return (1.0 / 8.0) * (a->z + b->z) + (3.0 / 4.0) * (v->z);
+            else
+                throw std::runtime_error("you should not come here 3.0");
+        } else {
+            double n = (double)valence;
+            double beta = 0;
+
+            /* Loop's suggestion for beta */
+            double x = (3.0 / 8.0 + 1.0 / 4.0 * cos(2.0 * Pi / n));
+            beta = (1.0 / n) * (5.0 / 8.0 - x * x);
+            /* Warren's suggestion for beta */
+            // if (valence == 3)
+            //     beta = 3.0 / 16.0;
+            // else if (valence > 3)
+            //     beta = 3.0 / (8.0 * n);
+            // else
+            //     throw std::runtime_error("you should not come here 4.0.0");
+
+            double sum = 0;
+            if (direction == 'x') {
+                for (int i = 0; i < neighbour.size(); i++)
+                    sum += neighbour[i].x;
+                return v->x * (1.0 - n * beta) + sum * beta;
+            } else if (direction == 'y') {
+                for (int i = 0; i < neighbour.size(); i++)
+                    sum += neighbour[i].y;
+                return v->y * (1.0 - n * beta) + sum * beta;
+            } else if (direction == 'z') {
+                for (int i = 0; i < neighbour.size(); i++)
+                    sum += neighbour[i].z;
+                return v->z * (1.0 - n * beta) + sum * beta;
+            } else {
+                throw std::runtime_error("you should not come here 4.0");
+            }
+
+        }
     }
 
 };
