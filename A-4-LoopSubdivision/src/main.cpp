@@ -71,19 +71,19 @@ int main() {
     mesh.MoveTo(glm::vec3(0, 0, -10));
     mesh.Setup();
 
-    GUI gui(window);
+    GUI gui(window.w);
     {
-        gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
+        gui.subscribe([&](double now, double lastTime, GLFWwindow *w) {
             ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
             ImGui::SameLine();
-            ImGui::Text("%2.0f FPS", 1 / (now - lastRenderTime));
+            ImGui::Text("%2.0f FPS", 1 / (now - lastTime));
             ImGui::Text("%s", readable_size(allocated_bytes).c_str());
             ImVec2 window1_size = ImGui::GetWindowSize();
             ImGui::SetWindowPos(ImVec2(window.SCR_WIDTH - window1_size.x, 0), ImGuiCond_Always);
             ImGui::End();
         });
-        gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
+        gui.subscribe([&](double now, double lastTime, GLFWwindow *w) {
             glm::vec3 cameraPos = camera.Position;
             ImGui::SetNextWindowPos(ImVec2(0, 94), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
             ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
@@ -110,21 +110,20 @@ int main() {
         ////// Update Logic
         window.processInput(deltaUpdateTime, deltaRenderTime);
         mesh.processInput(window.w);
-        mesh.update(now, deltaUpdateTime);
-        gui.update();
+        mesh.update(now, lastUpdateTime, window.w);
 
         ////// Render Frame
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         float screenRatio = (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT;
-        glm::mat4 projection = camera.GetProjectionMatrix(lastRenderTime, now, screenRatio);
+        glm::mat4 projection = camera.GetProjectionMatrix(now, lastRenderTime, screenRatio);
         glm::mat4 view = camera.GetViewMatrix();
         // render object first
         for (int i = 0; i < smileBoxs.size(); i++)
-            smileBoxs[i].render(now, deltaRenderTime, view, projection);
-        mesh.render(now, deltaRenderTime, view, projection);
+            smileBoxs[i].render(now, lastRenderTime, view, projection);
+        mesh.render(now, lastRenderTime, view, projection);
         // finally render GUI
-        gui.render(window.w, lastRenderTime, now);
+        gui.refresh(now, lastRenderTime, window.w);
 
         ////// Finish Render
         window.swapBuffersAndPollEvents();

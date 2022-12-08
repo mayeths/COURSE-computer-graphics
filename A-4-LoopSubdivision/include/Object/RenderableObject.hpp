@@ -12,14 +12,17 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Object/BaseObject.hpp"
+#include "BaseObject.hpp"
 
-class DrawableObject : public BaseObject
+class RenderableObject : public BaseObject
 {
-   public:
+public:
     glm::vec3 position     = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     GLfloat rotationAngle  = 0; /* in radians */
+public:
+    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) = 0;
+    virtual const char *GetObjectTypeName() { return "RenderableObject"; }
 
     void MoveTo(glm::vec3 newPosition)
     {
@@ -55,15 +58,4 @@ class DrawableObject : public BaseObject
         return model;
     }
 
-
-    virtual const char *GetObjectTypeName()
-    {
-        return "DrawableObject";
-    }
-
-    // if the class will cointain some logic, so it must be refreshed at each game loop cycle by calling update.
-    // Otherwise just don't override it.
-    virtual void update(double now, double deltaUpdateTime){};
-    virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection) = 0;
-    virtual void GUIcallback(double lastRenderTime, double now){};
 };

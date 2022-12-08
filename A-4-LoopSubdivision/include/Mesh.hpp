@@ -14,7 +14,8 @@
 #include "raii.hpp"
 #include "log.h"
 #include "Shader.hpp"
-#include "Object/DrawableObject.hpp"
+#include "Object/RenderableObject.hpp"
+#include "Object/UpdatableObject.hpp"
 
 struct vertex_t;
 struct edge_t;
@@ -51,7 +52,7 @@ struct mesh_t {
     std::vector<face_t> faces;
 };
 
-class Mesh : public DrawableObject
+class Mesh : public RenderableObject, UpdatableObject
 {
     guard_t guard;
 public:
@@ -218,7 +219,7 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    virtual void update(double now, double deltaUpdateTime)
+    virtual void update(double now, double lastUpdateTime, GLFWwindow *window)
     {
         if (this->oldKeyQState == GLFW_PRESS && this->nowKeyQState == GLFW_RELEASE) {
             this->TrySwitchMesh(-1);
@@ -228,7 +229,7 @@ public:
         }
     }
 
-    virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
+    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
         this->guard.ensure();
         this->shader.use();
 

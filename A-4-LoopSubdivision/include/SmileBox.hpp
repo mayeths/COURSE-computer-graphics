@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Object/DrawableObject.hpp"
+#include "Object/RenderableObject.hpp"
 #include "Shader.hpp"
 #include "Scene.hpp"
 #include "Texture.hpp"
@@ -11,7 +11,7 @@
 // https://www.khronos.org/opengl/wiki/Array_Texture
 // https://stackoverflow.com/questions/73546924/how-to-use-gl-texture-2d-array-with-stb-image
 
-class SmileBox : public DrawableObject
+class SmileBox : public RenderableObject
 {
 public:
     Shader shader;
@@ -139,9 +139,7 @@ public:
         glBindVertexArray(0);
     }
 
-    virtual void update(double now, double deltaUpdateTime) {}
-
-    virtual void render(double now, double deltaRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
+    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
         this->texture0.Active(GL_TEXTURE0);
         this->texture1.Active(GL_TEXTURE1);
         this->shader.use();
@@ -159,7 +157,5 @@ public:
         glBindVertexArray(this->VAO.get());
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
-
-    virtual void GUIcallback(double lastRenderTime, double now) {}
 
 };

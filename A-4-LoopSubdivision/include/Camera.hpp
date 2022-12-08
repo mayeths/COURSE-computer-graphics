@@ -124,7 +124,7 @@ public:
         return glm::lookAt(this->Position, this->Position + this->_Front, this->_Up);
     }
 
-    glm::mat4 GetProjectionMatrix(double lastRenderTime, double now, float screenRatio)
+    glm::mat4 GetProjectionMatrix(double now, double lastRenderTime, float screenRatio)
     {
         double delta = now - lastRenderTime;
         if (lastRenderTime - this->LastScrollTime <= 0.25f) {
