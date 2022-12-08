@@ -528,23 +528,30 @@ public:
         std::vector<std::array<int, 3>> faces;
         
         std::ifstream fin;
-        fin.exceptions(std::ifstream::badbit);
+        std::ifstream::iostate old_state = fin.exceptions();
+        fin.exceptions(std::ifstream::badbit | std::ifstream::failbit);
         try {
             fin.open(path, std::ios::in);
         } catch (std::ifstream::failure& e) {
             log_error("Mesh(%s) was not successfully read: %s", path.c_str(), e.what());
             return std::make_pair(vertices, faces);
         }
+        fin.exceptions(old_state);
 
         int offset = 0;
         if (path.find(".0.mesh") != std::string::npos) {
             offset = 0;
         } else if (path.find(".1.mesh") != std::string::npos) {
             offset = 1;
+        } else {
+            log_warn("File %s extension is not \".0.mesh\" or \".1.mesh\", "
+                "assuming face index start from 1", path.c_str()
+            );
+            offset = 0;
         }
 
-        std::array<double, 3> maxcoords;
-        std::array<double, 3> mincoords;
+        std::array<double, 3> mincoords = {1e100, 1e100, 1e100};
+        std::array<double, 3> maxcoords = {-1e100, -1e100, -1e100};
         std::string line;
         while (std::getline(fin, line)) {
             if (line.size() == 0) continue;
@@ -555,6 +562,8 @@ public:
             if (t == 'v') {
                 std::array<double, 3> positions;
                 instring >> positions[0] >> positions[1] >> positions[2];
+                // log_trace("%f %f %f", mincoords[0], mincoords[1], mincoords[2]);
+                // log_trace("%f %f %f", positions[0], positions[1], positions[2]);
                 mincoords[0] = std::min(mincoords[0], positions[0]);
                 mincoords[1] = std::min(mincoords[1], positions[1]);
                 mincoords[2] = std::min(mincoords[2], positions[2]);
@@ -572,10 +581,12 @@ public:
             }
         }
 
-        double bounding = 0;
+        double bounding = -1e100;
         bounding = std::max(bounding, maxcoords[0] - mincoords[0]);
         bounding = std::max(bounding, maxcoords[1] - mincoords[1]);
         bounding = std::max(bounding, maxcoords[2] - mincoords[2]);
+        log_trace("%f %f %f", mincoords[0], mincoords[1], mincoords[2]);
+        log_trace("%f %f %f", maxcoords[0], maxcoords[1], maxcoords[2]);
         assert(bounding != 0);
         double scale = boundingBoxSize / bounding;
         for (int i = 0; i < vertices.size(); i++) {
