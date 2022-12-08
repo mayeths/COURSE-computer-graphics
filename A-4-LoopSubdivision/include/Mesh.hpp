@@ -26,7 +26,6 @@ struct vertex_t {
     vertex_t *adjust = nullptr; //new position after adjust
     edge_t *asOrigin = nullptr;  //edge which starts from this point
     edge_t *asInsert = nullptr;  //after subdivision
-    bool beenOrigined = false;
 };
 
 struct face_t {
@@ -127,6 +126,8 @@ public:
             vertex.position.z = positions[2];
             vertex.ID = mesh.uuid_v++;
         }
+
+        std::map<const vertex_t *, bool> associated;
         for (size_t i = 0; i < nfaces; i++) {
             std::array<int, 3> points = this->faces[i];
             vertex_t &point0 = mesh.vertices[points[0]];
@@ -142,17 +143,17 @@ public:
             edge0.origin = &point0;
             edge1.origin = &point1;
             edge2.origin = &point2;
-            if (!point0.beenOrigined) {
+            if (!associated[&point0]) {
                 point0.asOrigin = &edge0;
-                point0.beenOrigined = true;
+                associated[&point0] = true;
             }
-            if (!point1.beenOrigined) {
+            if (!associated[&point1]) {
                 point1.asOrigin = &edge1;
-                point1.beenOrigined = true;
+                associated[&point1] = true;
             }
-            if (!point2.beenOrigined) {
+            if (!associated[&point2]) {
                 point2.asOrigin = &edge2;
-                point2.beenOrigined = true;
+                associated[&point2] = true;
             }
 
             edge0.nextEdge = &edge1;
