@@ -61,8 +61,6 @@ public:
     VAO_raii VAO;
     VBO_raii VBO;
     std::string meshPath;
-    std::vector<std::array<double, 3>> vertices;
-    std::vector<std::array<int, 3>> faces;
     std::vector<mesh_t> meshs;
     int curr = 0;
     int oldKeyQState = GLFW_RELEASE;
@@ -82,43 +80,18 @@ public:
 
     void Setup() {
         this->shader.Setup();
+        auto pair = this->LoadMeshfile(this->meshPath);
+        std::vector<std::array<double, 3>> vertices = pair.first;
+        std::vector<std::array<int, 3>> faces = pair.second;
 
-        std::ifstream fin;
-        fin.exceptions(std::ifstream::badbit);
-        try {
-            fin.open(this->meshPath, std::ios::in);
-        } catch (std::ifstream::failure& e) {
-            log_error("Mesh(%s) was not successfully read: %s", meshPath.c_str(), e.what());
-            return;
-        }
-        std::string line;
-        while (std::getline(fin, line)) {
-            if (line.size() == 0) continue;
-            std::istringstream instring(line);
-            char t;
-            instring >> t;
-            glm::vec3 data;
-            if (t == 'v') {
-                std::array<double, 3> positions;
-                instring >> positions[0] >> positions[1] >> positions[2];
-                this->vertices.push_back(std::move(positions));
-            } else if (t == 'f') {
-                std::array<int, 3> vertexs;
-                instring >> vertexs[0] >> vertexs[1] >> vertexs[2];
-                this->faces.push_back(std::move(vertexs));
-            }
-        }
-
+        this->curr = 0;
         this->meshs.resize(1);
         mesh_t &mesh = this->meshs[0];
-
-        size_t nvertices = this->vertices.size();
-        size_t nfaces = this->faces.size();
-        mesh.vertices.resize(nvertices);
-        mesh.faces.resize(nfaces);
-        mesh.edges.resize(nfaces * 3);
-        for (size_t i = 0; i < nvertices; i++) {
-            std::array<double, 3> positions = this->vertices[i];
+        mesh.vertices.resize(vertices.size());
+        mesh.faces.resize(faces.size());
+        mesh.edges.resize(faces.size() * 3);
+        for (size_t i = 0; i < vertices.size(); i++) {
+            std::array<double, 3> positions = vertices[i];
             vertex_t &vertex = mesh.vertices[i];
             vertex.position.x = positions[0];
             vertex.position.y = positions[1];
@@ -127,8 +100,8 @@ public:
         }
 
         std::map<const vertex_t *, bool> associated;
-        for (size_t i = 0; i < nfaces; i++) {
-            std::array<int, 3> vertexs = this->faces[i];
+        for (size_t i = 0; i < faces.size(); i++) {
+            std::array<int, 3> vertexs = faces[i];
             vertex_t &vertex0 = mesh.vertices[vertexs[0]];
             vertex_t &vertex1 = mesh.vertices[vertexs[1]];
             vertex_t &vertex2 = mesh.vertices[vertexs[2]];
@@ -171,10 +144,10 @@ public:
         }
 
         this->setNormal(mesh);
-        this->findTwin(mesh, nfaces * 3);
+        this->findTwin(mesh, mesh.faces.size() * 3);
         this->setCrease(mesh);
 
-        log_debug("Mesh %d vertices %d faces", this->vertices.size(), this->faces.size());
+        log_debug("Mesh %d vertices %d faces", vertices.size(), faces.size());
         this->OffloadCurrentMesh();
         this->guard.set();
     }
@@ -214,9 +187,8 @@ public:
     void OffloadCurrentMesh()
     {
         mesh_t &mesh = this->meshs[this->curr];
-        size_t nfaces = this->faces.size();
         std::vector<GLfloat> fdata;
-        for (size_t i = 0; i < nfaces; i++) {
+        for (size_t i = 0; i < mesh.faces.size(); i++) {
             face_t &face = mesh.faces[i];
             edge_t &edge0 = *face.edges;
             edge_t &edge1 = *edge0.next;
@@ -544,6 +516,42 @@ public:
             checked[edge] = true;
             checked[edge->twin] = true;
         }
+    }
+
+    static std::pair<std::vector<std::array<double, 3>>, std::vector<std::array<int, 3>>>
+    LoadMeshfile(const std::string &path) {
+        std::vector<std::array<double, 3>> vertices;
+        std::vector<std::array<int, 3>> faces;
+        
+        std::ifstream fin;
+        fin.exceptions(std::ifstream::badbit);
+        try {
+            fin.open(path, std::ios::in);
+        } catch (std::ifstream::failure& e) {
+            log_error("Mesh(%s) was not successfully read: %s", path.c_str(), e.what());
+            return std::make_pair(vertices, faces);
+        }
+
+        std::string line;
+        while (std::getline(fin, line)) {
+            if (line.size() == 0) continue;
+            std::istringstream instring(line);
+            char t;
+            instring >> t;
+            glm::vec3 data;
+            if (t == 'v') {
+                std::array<double, 3> positions;
+                instring >> positions[0] >> positions[1] >> positions[2];
+                vertices.push_back(std::move(positions));
+            } else if (t == 'f') {
+                std::array<int, 3> vertexs;
+                instring >> vertexs[0] >> vertexs[1] >> vertexs[2];
+                faces.push_back(std::move(vertexs));
+            }
+        }
+
+        fin.close();
+        return std::make_pair(vertices, faces);
     }
 
 };
