@@ -72,12 +72,13 @@ int main() {
     GUI gui(window);
     {
         gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
-            ImGui::SetNextWindowPos(ImVec2(window.SCR_WIDTH-60, 0), ImGuiCond_Always);
             ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Always);
-            ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+            ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
             ImGui::SameLine();
-            ImGui::Text("%.0f FPS", 1 / (now - lastRenderTime));
+            ImGui::Text("%2.0f FPS", 1 / (now - lastRenderTime));
             ImGui::Text("%s", readable_size(allocated_bytes).c_str());
+            ImVec2 window1_size = ImGui::GetWindowSize();
+            ImGui::SetWindowPos(ImVec2(window.SCR_WIDTH - window1_size.x, 0), ImGuiCond_Always);
             ImGui::End();
         });
         gui.subscribe([&](GLFWwindow *w, double lastRenderTime, double now) {
