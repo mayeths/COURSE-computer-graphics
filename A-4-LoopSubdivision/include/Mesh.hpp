@@ -24,25 +24,24 @@ struct vertex_t {
     uint32_t ID = 0;
     glm::vec3 position = glm::vec3(0, 0, 0);
     vertex_t *adjust = nullptr; //new position after adjust
-    edge_t *asOrigin = nullptr;  //edge which starts from this point
+    edge_t *asOrigin = nullptr;  //edge which starts from this vertex
     edge_t *asInsert = nullptr;  //after subdivision
-};
-
-struct face_t {
-    uint32_t ID = 0;
-    edge_t *boundary = nullptr;  //one edge that bound this face
-    glm::vec3 normal = glm::vec3(0, 0, 0);
 };
 
 struct edge_t {
     uint32_t ID = 0;
     vertex_t *origin = nullptr;
+    face_t *belong = nullptr;
     edge_t *twin = nullptr;
-    face_t *incidentFace = nullptr;
-    edge_t *nextEdge = nullptr;
-    edge_t *preEdge= nullptr;
-    vertex_t *insert = nullptr; //record new vertex
-    bool isCrease = false; // artificially specify a cease or boundary
+    edge_t *next = nullptr;
+    edge_t *prev = nullptr;
+    bool crease = false; // A crease (or boundary)
+};
+
+struct face_t {
+    uint32_t ID = 0;
+    edge_t *edges = nullptr;
+    glm::vec3 normal = glm::vec3(0, 0, 0);
 };
 
 struct mesh_t {
@@ -104,9 +103,9 @@ public:
                 instring >> positions[0] >> positions[1] >> positions[2];
                 this->vertices.push_back(std::move(positions));
             } else if (t == 'f') {
-                std::array<int, 3> points;
-                instring >> points[0] >> points[1] >> points[2];
-                this->faces.push_back(std::move(points));
+                std::array<int, 3> vertexs;
+                instring >> vertexs[0] >> vertexs[1] >> vertexs[2];
+                this->faces.push_back(std::move(vertexs));
             }
         }
 
@@ -129,51 +128,51 @@ public:
 
         std::map<const vertex_t *, bool> associated;
         for (size_t i = 0; i < nfaces; i++) {
-            std::array<int, 3> points = this->faces[i];
-            vertex_t &point0 = mesh.vertices[points[0]];
-            vertex_t &point1 = mesh.vertices[points[1]];
-            vertex_t &point2 = mesh.vertices[points[2]];
+            std::array<int, 3> vertexs = this->faces[i];
+            vertex_t &vertex0 = mesh.vertices[vertexs[0]];
+            vertex_t &vertex1 = mesh.vertices[vertexs[1]];
+            vertex_t &vertex2 = mesh.vertices[vertexs[2]];
 
             face_t &face = mesh.faces[i];
             edge_t &edge0 = mesh.edges[i * 3 + 0];
             edge_t &edge1 = mesh.edges[i * 3 + 1];
             edge_t &edge2 = mesh.edges[i * 3 + 2];
 
-            face.boundary = &edge0;
-            edge0.origin = &point0;
-            edge1.origin = &point1;
-            edge2.origin = &point2;
-            if (!associated[&point0]) {
-                point0.asOrigin = &edge0;
-                associated[&point0] = true;
+            face.edges = &edge0;
+            edge0.origin = &vertex0;
+            edge1.origin = &vertex1;
+            edge2.origin = &vertex2;
+            if (!associated[&vertex0]) {
+                vertex0.asOrigin = &edge0;
+                associated[&vertex0] = true;
             }
-            if (!associated[&point1]) {
-                point1.asOrigin = &edge1;
-                associated[&point1] = true;
+            if (!associated[&vertex1]) {
+                vertex1.asOrigin = &edge1;
+                associated[&vertex1] = true;
             }
-            if (!associated[&point2]) {
-                point2.asOrigin = &edge2;
-                associated[&point2] = true;
+            if (!associated[&vertex2]) {
+                vertex2.asOrigin = &edge2;
+                associated[&vertex2] = true;
             }
 
-            edge0.nextEdge = &edge1;
-            edge1.nextEdge = &edge2;
-            edge2.nextEdge = &edge0;
-            edge0.preEdge = &edge2;
-            edge1.preEdge = &edge0;
-            edge2.preEdge = &edge1;
-            edge0.incidentFace = &face;
-            edge1.incidentFace = &face;
-            edge2.incidentFace = &face;
+            edge0.next = &edge1;
+            edge1.next = &edge2;
+            edge2.next = &edge0;
+            edge0.prev = &edge2;
+            edge1.prev = &edge0;
+            edge2.prev = &edge1;
+            edge0.belong = &face;
+            edge1.belong = &face;
+            edge2.belong = &face;
             face.ID = mesh.uuid_f++;
             edge0.ID = mesh.uuid_e++;
             edge1.ID = mesh.uuid_e++;
             edge2.ID = mesh.uuid_e++;
         }
 
-        this->setNormal(&mesh);
-        this->findTwin(&mesh, nfaces * 3);
-        this->setCrease(&mesh);
+        this->setNormal(mesh);
+        this->findTwin(mesh, nfaces * 3);
+        this->setCrease(mesh);
 
         log_debug("Mesh %d vertices %d faces", this->vertices.size(), this->faces.size());
         this->OffloadCurrentMesh();
@@ -205,7 +204,7 @@ public:
                 newMesh.vertices.reserve(oldMesh.vertices.size() * 8);
                 newMesh.faces.reserve(oldMesh.faces.size() * 8);
                 newMesh.edges.reserve(oldMesh.edges.size() * 8);
-                this->loopSubdivision(&oldMesh, &newMesh);
+                this->loopSubdivision(oldMesh, newMesh);
             }
         }
         this->curr = targetIndex;
@@ -219,16 +218,16 @@ public:
         std::vector<GLfloat> fdata;
         for (size_t i = 0; i < nfaces; i++) {
             face_t &face = mesh.faces[i];
-            edge_t &edge0 = *face.boundary;
-            edge_t &edge1 = *edge0.nextEdge;
-            edge_t &edge2 = *edge0.preEdge;
-            vertex_t &point0 = *edge0.origin;
-            vertex_t &point1 = *edge1.origin;
-            vertex_t &point2 = *edge2.origin;
+            edge_t &edge0 = *face.edges;
+            edge_t &edge1 = *edge0.next;
+            edge_t &edge2 = *edge0.prev;
+            vertex_t &vertex0 = *edge0.origin;
+            vertex_t &vertex1 = *edge1.origin;
+            vertex_t &vertex2 = *edge2.origin;
 
-            fdata.push_back(point0.position.x); fdata.push_back(point0.position.y); fdata.push_back(point0.position.z);
-            fdata.push_back(point1.position.x); fdata.push_back(point1.position.y); fdata.push_back(point1.position.z);
-            fdata.push_back(point2.position.x); fdata.push_back(point2.position.y); fdata.push_back(point2.position.z);
+            fdata.push_back(vertex0.position.x); fdata.push_back(vertex0.position.y); fdata.push_back(vertex0.position.z);
+            fdata.push_back(vertex1.position.x); fdata.push_back(vertex1.position.y); fdata.push_back(vertex1.position.z);
+            fdata.push_back(vertex2.position.x); fdata.push_back(vertex2.position.y); fdata.push_back(vertex2.position.z);
         }
 
         this->VAO.destroy();
@@ -278,15 +277,13 @@ public:
     }
 
 
-    void loopSubdivision(mesh_t *inputMesh, mesh_t *outputMesh)
+    void loopSubdivision(mesh_t &coarse, mesh_t &fine)
     {
-        mesh_t &coarse = *inputMesh;
-        mesh_t &fine = *outputMesh;
-        uint32_t vertex_count = 0;
+        std::map<const edge_t *, vertex_t *> interpolated;
         // old vertex
         for (int i = 0; i < coarse.edges.size(); i++) {
             edge_t &edge = coarse.edges[i];
-            if (edge.insert)
+            if (interpolated[&edge])
                 continue;
             fine.vertices.resize(fine.vertices.size() + 1);
             vertex_t &insertV = fine.vertices.back();
@@ -294,10 +291,9 @@ public:
             insertV.position.y = this->loopFomular(&edge, 'y');
             insertV.position.z = this->loopFomular(&edge, 'z');
             insertV.ID = fine.uuid_v++;
-            vertex_count += 1;
-            edge.insert = &insertV;
+            interpolated[&edge] = &insertV;
             if (edge.twin != nullptr)
-                edge.twin->insert = &insertV;
+                interpolated[edge.twin] = &insertV;
         }
         // even vertex
         uint32_t vertex_count_old = 0;
@@ -308,54 +304,53 @@ public:
             uint32_t valences = 0;
             do {
                 valences += 1;
-                neighbour.push_back(*find->insert);
+                neighbour.push_back(*interpolated[find]);
                 if (find->twin == nullptr) {
-                    edge_t *findBack = vertex.asOrigin->preEdge;
+                    edge_t *findBack = vertex.asOrigin->prev;
                     while (findBack != nullptr) {
                         valences += 1;
-                        neighbour.push_back(*findBack->insert);
+                        neighbour.push_back(*interpolated[findBack]);
                         if (findBack->twin == nullptr)
                             break;
-                        findBack = findBack->twin->preEdge;
+                        findBack = findBack->twin->prev;
                     }
                     break;
                 }
-                find = find->twin->nextEdge;
+                find = find->twin->next;
             } while (find != vertex.asOrigin);
 
             vertex_t vertexUpdate;
             vertexUpdate = vertex;
-            vertexUpdate.position.x = this->adjustFomular(&vertexUpdate, valences, 'x', neighbour);
-            vertexUpdate.position.y = this->adjustFomular(&vertexUpdate, valences, 'y', neighbour);
-            vertexUpdate.position.z = this->adjustFomular(&vertexUpdate, valences, 'z', neighbour);
+            vertexUpdate.position.x = this->adjustFomular(&vertexUpdate, valences, 'x', neighbour, interpolated);
+            vertexUpdate.position.y = this->adjustFomular(&vertexUpdate, valences, 'y', neighbour, interpolated);
+            vertexUpdate.position.z = this->adjustFomular(&vertexUpdate, valences, 'z', neighbour, interpolated);
             vertexUpdate.ID = fine.uuid_v++;
             fine.vertices.push_back(vertexUpdate);
             coarse.vertices[i].adjust = &fine.vertices.back();
-            vertex_count += 1;
         }
         // remesh
         for (int i = 0; i < coarse.faces.size(); i++) {
             face_t &face = coarse.faces[i];
             edge_t e[4][3];
-            edge_t &e_origin = *face.boundary;
-            edge_t &e_previous = *e_origin.preEdge;
-            edge_t &e_next = *e_origin.nextEdge;
+            edge_t &e_origin = *face.edges;
+            edge_t &e_previous = *e_origin.prev;
+            edge_t &e_next = *e_origin.next;
 
-            e[0][0].origin = e_origin.insert;
+            e[0][0].origin = interpolated[&e_origin];
             e[0][1].origin = (e_next.origin)->adjust;
-            e[0][2].origin = e_next.insert;
+            e[0][2].origin = interpolated[&e_next];
 
-            e[1][0].origin = e_next.insert;
+            e[1][0].origin = interpolated[&e_next];
             e[1][1].origin = (e_previous.origin)->adjust;
-            e[1][2].origin = e_previous.insert;
+            e[1][2].origin = interpolated[&e_previous];
 
-            e[2][0].origin = e_previous.insert;
+            e[2][0].origin = interpolated[&e_previous];
             e[2][1].origin = (e_origin.origin)->adjust;
-            e[2][2].origin = e_origin.insert;
+            e[2][2].origin = interpolated[&e_origin];
 
-            e[3][0].origin = e_origin.insert;
-            e[3][1].origin = e_next.insert;
-            e[3][2].origin = e_previous.insert;
+            e[3][0].origin = interpolated[&e_origin];
+            e[3][1].origin = interpolated[&e_next];
+            e[3][2].origin = interpolated[&e_previous];
 
             for (uint32_t i = 0; i < 4; i++) {
                 fine.edges.push_back(e[i][0]);
@@ -366,36 +361,36 @@ public:
                 edge_t &e1 = fine.edges[fine.edges.size() - 2];
                 edge_t &e2 = fine.edges[fine.edges.size() - 1];
                 face_t &fine_face = fine.faces.back();
-                e0.incidentFace = &fine_face;
-                e1.incidentFace = &fine_face;
-                e2.incidentFace = &fine_face;
-                e0.nextEdge = &e1;
-                e1.nextEdge = &e2;
-                e2.nextEdge = &e0;
-                e0.preEdge = &e2;
-                e1.preEdge = &e0;
-                e2.preEdge = &e1;
-                fine_face.boundary = &e0;
+                e0.belong = &fine_face;
+                e1.belong = &fine_face;
+                e2.belong = &fine_face;
+                e0.next = &e1;
+                e1.next = &e2;
+                e2.next = &e0;
+                e0.prev = &e2;
+                e1.prev = &e0;
+                e2.prev = &e1;
+                fine_face.edges = &e0;
             }
 
-            e_origin.insert->asOrigin = &fine.edges[fine.edges.size() - 12];
-            e_next.insert->asOrigin = &fine.edges[fine.edges.size() - 10];
-            e_previous.insert->asOrigin = &fine.edges[fine.edges.size() - 7];
+            interpolated[&e_origin]->asOrigin = &fine.edges[fine.edges.size() - 12];
+            interpolated[&e_next]->asOrigin = &fine.edges[fine.edges.size() - 10];
+            interpolated[&e_previous]->asOrigin = &fine.edges[fine.edges.size() - 7];
             e_next.origin->adjust->asOrigin = &fine.edges[fine.edges.size() - 11];
             e_previous.origin->adjust->asOrigin = &fine.edges[fine.edges.size() - 8];
             e_origin.origin->adjust->asOrigin = &fine.edges[fine.edges.size() - 5];
         }
 
-        this->findTwin(outputMesh, outputMesh->edges.size());
-        this->setNormal(outputMesh);
-        this->setCrease(outputMesh);
+        this->findTwin(fine, fine.edges.size());
+        this->setNormal(fine);
+        this->setCrease(fine);
     }
 
     double loopFomular(edge_t *insertEdge, char direction)
     {
-        if (insertEdge->twin == nullptr || insertEdge->isCrease) {
+        if (insertEdge->twin == nullptr || insertEdge->crease) {
             vertex_t *a = insertEdge->origin;
-            vertex_t *b = insertEdge->nextEdge->origin;
+            vertex_t *b = insertEdge->next->origin;
             if (direction == 'x') {
                 return (a->position.x + b->position.x) / 2.0;
             } else if (direction == 'y') {
@@ -407,9 +402,9 @@ public:
             }
         } else {
             vertex_t *a = insertEdge->origin;
-            vertex_t *b = insertEdge->nextEdge->origin;
-            vertex_t *c = insertEdge->preEdge->origin;
-            vertex_t *d = insertEdge->twin->preEdge->origin;
+            vertex_t *b = insertEdge->next->origin;
+            vertex_t *c = insertEdge->prev->origin;
+            vertex_t *d = insertEdge->twin->prev->origin;
             if (direction == 'x') {
                 return (3.0 / 8.0) * (a->position.x + b->position.x) + (1.0 / 8.0) * (c->position.x + d->position.x);
             } else if (direction == 'y') {
@@ -422,12 +417,12 @@ public:
         }
     }
 
-    double adjustFomular(vertex_t *v, uint32_t valence, char direction, std::vector<vertex_t> neighbour)
+    double adjustFomular(vertex_t *v, uint32_t valence, char direction, std::vector<vertex_t> neighbour, std::map<const edge_t *, vertex_t *> &interpolated)
     {
         edge_t *edge = v->asOrigin;
-        if (edge->twin == nullptr || edge->isCrease) {
-            vertex_t *a = edge->insert;
-            vertex_t *b = edge->preEdge->insert;
+        if (edge->twin == nullptr || edge->crease) {
+            vertex_t *a = interpolated[edge];
+            vertex_t *b = interpolated[edge->prev];
             if (direction == 'x')
                 return (1.0 / 8.0) * (a->position.x + b->position.x) + (3.0 / 4.0) * (v->position.x);
             else if (direction == 'y')
@@ -473,36 +468,36 @@ public:
 
 
     //find the twin of edges
-    void findTwin(mesh_t *mesh, uint32_t edge_count)
+    void findTwin(mesh_t &mesh, uint32_t edge_count)
     {
         for (uint32_t i = 0; i < edge_count; i++)
             for (uint32_t j = i + 1; j < edge_count; j++) {
-                if ((((*mesh).edges)[i]).twin)
+                if (((mesh.edges)[i]).twin)
                     break;
-                if ((((*mesh).edges)[j]).twin)
+                if (((mesh.edges)[j]).twin)
                     continue;
-                if ((((*mesh).edges)[i]).origin == (*(((*mesh).edges)[j]).nextEdge).origin && (((*mesh).edges)[j]).origin == (*(((*mesh).edges)[i]).nextEdge).origin) {
-                    (((*mesh).edges)[i]).twin = &((*mesh).edges)[j];
-                    (((*mesh).edges)[j]).twin = &((*mesh).edges)[i];
+                if (((mesh.edges)[i]).origin == (*((mesh.edges)[j]).next).origin && ((mesh.edges)[j]).origin == (*((mesh.edges)[i]).next).origin) {
+                    ((mesh.edges)[i]).twin = &(mesh.edges)[j];
+                    ((mesh.edges)[j]).twin = &(mesh.edges)[i];
                 }
             }
     }
     //compute normal
-    void setNormal(mesh_t *mesh)
+    void setNormal(mesh_t &mesh)
     {
         uint32_t i = 0;
         // log_trace("total face %d", (*mesh).faces.size());
-        for (auto it = (*mesh).faces.begin(); it != (*mesh).faces.end(); it++, i++) {
+        for (auto it = mesh.faces.begin(); it != mesh.faces.end(); it++, i++) {
             // log_trace("face %p(%u)", it, (*it).ID);
-            edge_t *origin = (*it).boundary;
+            edge_t *origin = (*it).edges;
             // log_trace("    boundary %p(%u)", origin, (*origin).ID);
             // v1 is first vector of the face, v2 is the second vector, vn is the normal
             glm::vec3 v1, v2, vn;
             vertex_t &p0 = *(*origin).origin;
             // log_trace("    p0 %p(%u)", &p0, p0.ID);
-            vertex_t &p1 = *(*(*origin).nextEdge).origin;
+            vertex_t &p1 = *(*(*origin).next).origin;
             // log_trace("    p1 %p(%u)", &p1, p1.ID);
-            vertex_t &p2 = *(*(*origin).preEdge).origin;
+            vertex_t &p2 = *(*(*origin).prev).origin;
             // log_trace("    p2 %p(%u)", &p2, p2.ID);
             double length;
             //compute normal
@@ -526,32 +521,25 @@ public:
             (*it).normal = vn;
         }
     }
-    //compute cos(angle) of two vectors
-    double vectorAngle(const glm::vec3 &v0, const glm::vec3 &v1)
-    {
-        double length1 = sqrt((v0.x * v0.x) + (v0.y * v0.y) + (v0.z * v0.z));
-        double length2 = sqrt((v1.x * v1.x) + (v1.y * v1.y) + (v1.z * v1.z));
-        return ((v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) / (length1 * length2));
-    }
 
-    void setCrease(mesh_t *mesh)
+    void setCrease(mesh_t &mesh)
     {
         std::map<const edge_t *, bool> checked;
-        for (int i= 0; i < mesh->edges.size(); i++) {
-            edge_t *edge = &mesh->edges[i];
+        for (int i= 0; i < mesh.edges.size(); i++) {
+            edge_t *edge = &mesh.edges[i];
             if (checked[edge])
                 continue;
 
-            glm::vec3 normal0 = glm::normalize(edge->incidentFace->normal);
-            glm::vec3 normal1 = glm::normalize(edge->twin->incidentFace->normal);
+            glm::vec3 normal0 = glm::normalize(edge->belong->normal);
+            glm::vec3 normal1 = glm::normalize(edge->twin->belong->normal);
             double degrees = glm::degrees(glm::acos(glm::dot(normal0, normal1)));
 
             if (degrees >= 150) {
-                edge->isCrease = true;
-                edge->twin->isCrease = true;
+                edge->crease = true;
+                edge->twin->crease = true;
             } else {
-                edge->isCrease = false;
-                edge->twin->isCrease = false;
+                edge->crease = false;
+                edge->twin->crease = false;
             }
             checked[edge] = true;
             checked[edge->twin] = true;
