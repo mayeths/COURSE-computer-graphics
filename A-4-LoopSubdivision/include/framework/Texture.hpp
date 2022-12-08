@@ -6,10 +6,10 @@
 #include <iostream>
 #include <string>
 
-#include "log.h"
+#include "util/log.h"
 #ifdef STB_IMAGE_IMPLEMENTATION
 #undef STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "util/stb_image.h"
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 

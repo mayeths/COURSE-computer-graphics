@@ -12,17 +12,16 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "util/log.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#include "log.h"
+#include "util/stb_image.h"
 #define MEMORY_IMPL
-#include "memory.h"
-#include "Scene.hpp"
+#include "util/memory.h"
+
 #include "Window.hpp"
-#include "GUI.hpp"
+#include "framework/GUI.hpp"
+#include "framework/Shader.hpp"
 #include "Mesh.hpp"
-#include "Shader.hpp"
 #include "SmileBox.hpp"
 
 int main() {

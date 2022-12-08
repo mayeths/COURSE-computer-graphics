@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Object/RenderableObject.hpp"
-#include "Shader.hpp"
-#include "Scene.hpp"
-#include "Texture.hpp"
-#include "raii.hpp"
+#include "framework/Shader.hpp"
+#include "framework/Texture.hpp"
+#include "object/RenderableObject.hpp"
+#include "util/raii.hpp"
 
 // https://community.khronos.org/t/how-to-make-array-of-sampler2d-uniforms/52862/3
 // https://stackoverflow.com/questions/12372058/how-to-use-gl-texture-2d-array-in-opengl-3-2
@@ -21,6 +20,7 @@ public:
     Texture texture1;
     VAO_raii VAO;
     VBO_raii VBO;
+    glm::vec3 rotationAxis = glm::vec3(0.0f, 0.0f, -1.0f);
     // GLuint VAO = 0, VBO = 0;
     // GLuint VBO = 0;
     int index;
@@ -148,8 +148,7 @@ public:
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, this->position);
-        Scene scene;
-        model = glm::rotate(model, (float)(45 + now * this->index), scene.Front());
+        model = glm::rotate(model, (float)(45 + now * this->index), this->rotationAxis);
         this->shader.setMat4("projection", projection);
         this->shader.setMat4("view", view);
         this->shader.setMat4("model", model);

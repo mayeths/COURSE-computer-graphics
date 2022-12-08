@@ -6,9 +6,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include "Object/GUIHandlerObject.hpp"
-
-#include "Window.hpp"
+#include "object/GUIHandlerObject.hpp"
 
 class GUI
 {

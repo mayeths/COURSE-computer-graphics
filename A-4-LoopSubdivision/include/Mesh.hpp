@@ -11,11 +11,11 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "raii.hpp"
-#include "log.h"
-#include "Shader.hpp"
-#include "Object/RenderableObject.hpp"
-#include "Object/UpdatableObject.hpp"
+#include "util/raii.hpp"
+#include "util/log.h"
+#include "framework/Shader.hpp"
+#include "object/RenderableObject.hpp"
+#include "object/UpdatableObject.hpp"
 
 struct vertex_t;
 struct edge_t;

@@ -10,9 +10,9 @@
 #include <queue>
 #include <limits>
 
-#include "Object/BaseObject.hpp"
-#include "log.h"
-#include "Camera.hpp"
+#include "framework/Camera.hpp"
+#include "object/BaseObject.hpp"
+#include "util/log.h"
 
 class Window {
 public:
