@@ -27,7 +27,7 @@ void * operator new(size_t nbytes)
     return &(obj->content);
 }
 
-void operator delete(void *ptr)
+void operator delete(void *ptr) _NOEXCEPT
 {
     // std::cout<<"Deleting:"<<ptr<<std::endl;
     mem_trace *obj = (mem_trace *)((char *)ptr - (int)offsetof(mem_trace, content));
@@ -45,6 +45,6 @@ static inline std::string readable_size(size_t bytes, size_t precision = 2)
         i++;
     }
     char buf[1024];
-    sprintf(buf, "%.*f %s", precision, size, units[i]); /*%.*f*/
+    sprintf(buf, "%.*f %s", (int)precision, size, units[i]); /*%.*f*/
     return std::string(buf);
 }

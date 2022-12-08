@@ -24,7 +24,6 @@
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "SmileBox.hpp"
-#include "zyMesh.h"
 
 #include "halfEdge_structure.h"
 
