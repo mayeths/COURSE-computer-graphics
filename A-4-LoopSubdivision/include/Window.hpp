@@ -161,11 +161,9 @@ public:
     void AddObject(Object *object)
     {
         this->objects.insert(object);
-    }
-
-    void SubscribeGUI(GUIHandler *handler)
-    {
-        this->gui.subscribe(handler);
+        GUIHandler *g = dynamic_cast<GUIHandler *>(object);
+        if (g)
+            this->gui.subscribe(g);
     }
 
     void SubscribeGUI(GUI::Callback callback, void *data = nullptr)

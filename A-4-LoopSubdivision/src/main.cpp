@@ -68,7 +68,6 @@ int main() {
     mesh.Setup();
 
     window.AddObject(&mesh);
-    window.SubscribeGUI(&mesh);
 
     double now;
     double lastUpdateTime = 0;

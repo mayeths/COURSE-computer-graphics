@@ -180,7 +180,7 @@ public:
                 newMesh.vertices.reserve(oldMesh.vertices.size() * 8);
                 newMesh.faces.reserve(oldMesh.faces.size() * 8);
                 newMesh.edges.reserve(oldMesh.edges.size() * 8);
-                this->loopSubdivision(oldMesh, newMesh);
+                this->LoopSubdivision(oldMesh, newMesh);
             }
         }
         this->curr = targetIndex;
@@ -252,7 +252,7 @@ public:
     }
 
 
-    void loopSubdivision(mesh_t &coarse, mesh_t &fine)
+    void LoopSubdivision(mesh_t &coarse, mesh_t &fine)
     {
         std::map<const edge_t *, vertex_t *> odds;
         std::map<const vertex_t *, vertex_t *> evens;
