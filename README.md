@@ -1,7 +1,8 @@
 ## 作业报告
 
-本仓库基于助教提供的[MacOS框架](https://github.com/RainEggplant/opengl-mac-boilerplate
-)，简单实现了A-3物理碰撞、A-4网格加密、A-5光线追踪、A-6山体贴图、B-5雪花粒子、C-1简单渲染共六个作业。其中，A-3物理引擎和A-5光线追踪两个作业提供了Windows下运行的依赖库与初始框架，本人花很长时间移植到MacOS上没有成功。而且最后完成A-3物理引擎作业时，才发现它自带的依赖库无法与VS 2019的工具链搭配，不得已下载旧的VS 2012进行开发。A-4网格加密和A-6山体引擎用的是本人自己学习[LearnOpenGL](https://learnopengl.com/)搭建的，在MacOS下运行。
+本仓库基于助教提供的[MacOS框架](https://github.com/RainEggplant/opengl-mac-boilerplate)，简单实现了A-3物理碰撞、A-4网格加密、A-5光线追踪、A-6山体贴图、B-5雪花粒子、C-1简单渲染共六个作业。A-4作业中的框架是最后整理的，用来后续开发新东西会比较方便。
+
+其中，A-3物理引擎和A-5光线追踪两个作业提供了Windows下运行的依赖库与初始框架，本人花很长时间移植到MacOS上没有成功。而且最后完成A-3物理引擎作业时，才发现它自带的依赖库无法与VS 2019的工具链搭配，不得已下载旧的VS 2012进行开发。A-4网格加密和A-6山体引擎用的是本人自己学习[LearnOpenGL](https://learnopengl.com/)搭建的，在MacOS下运行。
 
 - A-3物理碰撞：Windows VS 2012开发（第四个完成的作业）
 - A-4网格加密：MacOS 开发（第五个完成的作业）
@@ -124,3 +125,6 @@
 
 <img src="images/image-202212122103135281.png" alt="image-202212122103135281" style="zoom:33%;" />
 
+### 致谢
+
+> 感谢本文提到的文献作者与代码贡献者。
