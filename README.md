@@ -26,19 +26,19 @@
 
 在作业的注释中推荐实现RK4更新公式，公式可见[维基百科](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods)如下：
 
-<img src="images/README/image-20221212210853277.png" alt="image-20221212210853277" style="zoom:33%;" />
+<img src="images/image-20221212210853277.png" alt="image-20221212210853277" style="zoom:33%;" />
 
 它的关键为`Physics::step(real_t dt)`中将时间步`h=dt`拆为更细的四段分别按照上面总结出的1-4步骤更新，每次求解一个子时间步都重新从环境交互开始重算到解出该子时间步的位置和朝向，这样可以降低时间步`dt`过大时显式求解初值问题的误差问题。但是本次实验的场景非常简单，初值问题就是在求解受力和扭矩与位置和朝向之间的关系，并非高维非线性方程，因而不用RK4误差就能维持在非常小的范围。如果想实现RK4，可以参考[该实现](https://github.com/mahardiansyahkartika/Computer-Graphics)。
 
 最终实现结果如`videos/`文件夹下的录屏，以下为部分截屏。
 
-<img src="images/README/image-20221212211647861.png" alt="image-20221212211647861" style="zoom:50%;" />
+<img src="images/image-20221212211647861.png" alt="image-20221212211647861" style="zoom:50%;" />
 
-<img src="images/README/image-20221212211711871.png" alt="image-20221212211711871" style="zoom:50%;" />
+<img src="images/image-20221212211711871.png" alt="image-20221212211711871" style="zoom:50%;" />
 
-<img src="images/README/image-20221212211728431.png" alt="image-20221212211728431" style="zoom:50%;" />
+<img src="images/image-20221212211728431.png" alt="image-20221212211728431" style="zoom:50%;" />
 
-<img src="images/README/image-20221212211754107.png" alt="image-20221212211754107" style="zoom:50%;" />
+<img src="images/image-20221212211754107.png" alt="image-20221212211754107" style="zoom:50%;" />
 
 ### A-4网格加密
 
@@ -59,11 +59,11 @@
 
 最终实现结果如`videos/`文件夹下的录屏，以下为部分截屏。
 
-<img src="images/README/image-20221212213301272.png" alt="image-20221212213301272" style="zoom: 33%;" />
+<img src="images/image-20221212213301272.png" alt="image-20221212213301272" style="zoom: 33%;" />
 
-<img src="images/README/image-20221212213326226.png" alt="image-20221212213326226" style="zoom:33%;" />
+<img src="images/image-20221212213326226.png" alt="image-20221212213326226" style="zoom:33%;" />
 
-<img src="images/README/image-20221212213343902.png" alt="image-20221212213343902" style="zoom:33%;" />
+<img src="images/image-20221212213343902.png" alt="image-20221212213343902" style="zoom:33%;" />
 
 ### A-5光线追踪
 
@@ -75,11 +75,11 @@
 
 最终实现结果如`videos/`文件夹下的录屏，以下为部分截屏。第一幅图是原始图片（`picture-default.bmp`），第二幅图是实现的硬反射（`picture-noblur.bmp`），第三幅图是软反射（`picture.bmp`）。这三幅图也可以在代码`Code/raytrace_hw`下找到。这三幅图没有展示平面和球光源的示例，但这两者的效果都实现了正确的代码，可以在scene文件中添加即可。
 
-<img src="images/README/image-20221212214904917.png" alt="image-20221212214904917" style="zoom: 25%;" />
+<img src="images/image-20221212214904917.png" alt="image-20221212214904917" style="zoom: 25%;" />
 
-<img src="images/README/image-20221212214846142.png" alt="image-20221212214846142" style="zoom: 25%;" />
+<img src="images/image-20221212214846142.png" alt="image-20221212214846142" style="zoom: 25%;" />
 
-<img src="images/README/image-20221212215054571.png" alt="image-20221212215054571" style="zoom: 25%;" />
+<img src="images/image-20221212215054571.png" alt="image-20221212215054571" style="zoom: 25%;" />
 
 ### A-6山体贴图
 
@@ -88,13 +88,13 @@
 - 山体加载：参考了LearnOpenGL的Guest Articles→2021年→[Tessellation教程](https://learnopengl.com/Guest-Articles/2021/Tessellation/Height-map)。在此基础上添加了细节纹理，使得靠近观察时能看到更清晰的纹路；
 - 天空盒：参考了LearnOpenGL的Getting Start→Textures和一系列文章，并通过旋转实现了各面天空的自然拼接。水面实现了随时间移动的效果，看起来类似水在波动，而且将天空盒与山体在水面之下二次倒映渲染，实现水面的反射效果。
 
-本作业最为直接简单，最终实现结果如`videos/`文件夹下的录屏，以下为部分截屏。第一幅图展示了水面的倒影等效果，第二幅图展示了天空盒的拼接，第三附图展示了山体的细节纹理。
+本作业最为直接简单，最终实现结果如`videos/`文件夹下的录屏，以下为部分截屏。第一幅图展示了水面的倒影等效果；第二幅图展示了天空盒的拼接（看起来会因为小而失真，在代码里设置`skyBoxWidth=1e5`就更真实了，但是水面会因为浮点误差与山体出现z-fighting，深度测试出现问题）；第三附图展示了山体的细节纹理。
 
-<img src="images/README/image-20221212215855962.png" alt="image-20221212215855962" style="zoom:33%;" />
+<img src="images/image-20221212215855962.png" alt="image-20221212215855962" style="zoom:33%;" />
 
-<img src="images/README/image-20221212215932528.png" alt="image-20221212215932528" style="zoom:33%;" />
+<img src="images/image-20221212215932528.png" alt="image-20221212215932528" style="zoom:33%;" />
 
-<img src="images/README/image-20221212215952682.png" alt="image-20221212215952682" style="zoom:33%;" />
+<img src="images/image-20221212215952682.png" alt="image-20221212215952682" style="zoom:33%;" />
 
 ### B-5雪花粒子
 
@@ -114,7 +114,7 @@
 
 视频如`videos/`文件夹下的录屏，截屏如下：
 
-<img src="images/README/image-20221211152026721.png" alt="image-20221211152026721" style="zoom:33%;" />
+<img src="images/image-20221211152026721.png" alt="image-20221211152026721" style="zoom:33%;" />
 
 ### C-1简单三角形
 
@@ -122,5 +122,5 @@
 
 视频如`videos/`文件夹下的录屏，截屏如下：
 
-<img src="images/README/image-202212122103135281.png" alt="image-202212122103135281" style="zoom:33%;" />
+<img src="images/image-202212122103135281.png" alt="image-202212122103135281" style="zoom:33%;" />
 
