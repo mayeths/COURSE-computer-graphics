@@ -28,12 +28,35 @@ int main() {
     }
     window.EnableStatisticGUI(Window::STAT_FPS | Window::STAT_MEMORY | Window::STAT_POSITION);
 
+    Camera &camera = window.camera;
+    {
+        camera.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+        camera.SetMovementSpeed(15);
+        camera.SetMaxRenderDistance(1e8f);
+    }
+
+    Mesh cow;
+    cow.SetMeshPath("assets/meshs/cow.1.mesh");
+    cow.SetShaderPath("assets/shaders/mesh.vs", "assets/shaders/mesh.fs");
+    cow.SetBoundingBoxSize(10.0);
+    cow.MoveTo(glm::vec3(0, 0, -20));
+    cow.Setup();
+    window.AddObject(&cow);
+
+    Mesh teddy;
+    teddy.SetMeshPath("assets/meshs/teddy.1.mesh");
+    teddy.SetShaderPath("assets/shaders/mesh.vs", "assets/shaders/mesh.fs");
+    teddy.SetBoundingBoxSize(10.0);
+    teddy.MoveTo(glm::vec3(10, 0, -20));
+    teddy.Setup();
+    teddy.EnableGUI(false);
+    window.AddObject(&teddy);
+
     std::vector<SmileBox> smileBoxs(12);
     for (int i = 0; i < smileBoxs.size(); i++) {
         smileBoxs[i].SetShaderPath("assets/shaders/smilebox.vs", "assets/shaders/smilebox.fs");
         smileBoxs[i].SetTexturePath("assets/textures/container.jpg", "assets/textures/awesomeface.png");
         smileBoxs[i].Setup(i);
-
         std::vector<glm::vec3> cubePositions {
             glm::vec3(0.0f * 2, -1.0f, -40.0f),
             glm::vec3(1.0f * 2, -1.0f, -40.0f),
@@ -50,23 +73,8 @@ int main() {
         };
         assert(smileBoxs.size() <= cubePositions.size());
         smileBoxs[i].MoveTo(cubePositions[i]);
+        window.AddObject(&smileBoxs[i]);
     }
-
-    Camera &camera = window.camera;
-    {
-        camera.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-        camera.setMovementSpeed(15);
-        camera.setMaxRenderDistance(1e8f);
-    }
-
-    Mesh mesh;
-    mesh.SetMeshPath("assets/meshs/teddy.1.mesh");
-    mesh.SetShaderPath("assets/shaders/mesh.vs", "assets/shaders/mesh.fs");
-    mesh.SetBoundingBoxSize(10.0);
-    mesh.MoveTo(glm::vec3(0, 0, -10));
-    mesh.Setup();
-
-    window.AddObject(&mesh);
 
     double now;
     double lastUpdateTime = 0;
@@ -75,27 +83,10 @@ int main() {
         lastRenderTime = now;
         lastUpdateTime = now;
         now = glfwGetTime();
-        double deltaUpdateTime = now - lastUpdateTime;
-        double deltaRenderTime = now - lastRenderTime;
-
         ////// Update Logic
-        window.processInput(deltaUpdateTime, deltaRenderTime);
-        mesh.processInput(window.w);
-        mesh.update(now, lastUpdateTime, window.w);
-
-        ////// Render Frame
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float screenRatio = (float)window.SCR_WIDTH / (float)window.SCR_HEIGHT;
-        glm::mat4 projection = camera.GetProjectionMatrix(now, lastRenderTime, screenRatio);
-        glm::mat4 view = camera.GetViewMatrix();
-        // render object first
-        for (int i = 0; i < smileBoxs.size(); i++)
-            smileBoxs[i].render(now, lastRenderTime, view, projection);
-        mesh.render(now, lastRenderTime, view, projection);
-        // finally render GUI
-        window.TriggerRender(now, lastRenderTime);
-
+        window.Update(now, lastUpdateTime);
+        ////// Render Frame, you can choose to render only when 1 / (now - lastRenderTime) = 60Hz.
+        window.Render(now, lastRenderTime);
         ////// Finish Render
         window.SwapBuffersAndPollEvents();
     }

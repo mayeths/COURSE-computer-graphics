@@ -68,12 +68,12 @@ public:
         this->updateCameraVectorsByEulerAngles();
     }
 
-    Camera& setPosition(glm::vec3 newPosition)
+    Camera& SetPosition(glm::vec3 newPosition)
     {
         this->Position = newPosition;
         return *this;
     }
-    Camera& setLookAtTarget(glm::vec3 newTarget)
+    Camera& SetLookAtTarget(glm::vec3 newTarget)
     {
         glm::vec3 direction = glm::normalize(newTarget - this->Position);
         this->Pitch = glm::degrees(asin(direction.y));
@@ -81,37 +81,37 @@ public:
         this->updateCameraVectorsByEulerAngles();
         return *this;
     }
-    Camera& setMovementSpeed(float newSpeed)
+    Camera& SetMovementSpeed(float newSpeed)
     {
         this->MovementSpeed = newSpeed;
         return *this;
     }
-    Camera& setMoveForwardSpeed(float newScale)
+    Camera& SetMoveForwardSpeed(float newScale)
     {
         this->MoveForwardScale = newScale;
         return *this;
     }
-    Camera& setMoveHorizontalSpeed(float newScale)
+    Camera& SetMoveHorizontalSpeed(float newScale)
     {
         this->MoveHorizontalScale = newScale;
         return *this;
     }
-    Camera& setMoveUpwardSpeed(float newScale)
+    Camera& SetMoveUpwardSpeed(float newScale)
     {
         this->MoveUpwardScale = newScale;
         return *this;
     }
-    Camera& setMouseSensitivity(float newMouseSensitivity)
+    Camera& SetMouseSensitivity(float newMouseSensitivity)
     {
         this->MouseSensitivity = newMouseSensitivity;
         return *this;
     }
-    Camera& setMinRenderDistance(float newMinRenderDistance)
+    Camera& SetMinRenderDistance(float newMinRenderDistance)
     {
         this->MinRenderDistance = newMinRenderDistance;
         return *this;
     }
-    Camera& setMaxRenderDistance(float newMaxRenderDistance)
+    Camera& SetMaxRenderDistance(float newMaxRenderDistance)
     {
         this->MaxRenderDistance = newMaxRenderDistance;
         return *this;

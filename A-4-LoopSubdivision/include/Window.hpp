@@ -22,13 +22,14 @@
 
 class Window {
 public:
-    static const int STAT_FPS = 0x1;
-    static const int STAT_POSITION = 0x2;
-    static const int STAT_MEMORY = 0x4;
+    enum {
+        STAT_FPS = 0x1, STAT_POSITION = 0x2, STAT_MEMORY = 0x4
+    };
     int statistic = 0;
 
     uint32_t SCR_WIDTH  = 1600;
     uint32_t SCR_HEIGHT = 900;
+    glm::vec4 backgroundColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
     static inline std::string name = "Mayeths' OpenGL Program";
     GLFWwindow* w;
     Camera camera;
@@ -81,13 +82,13 @@ public:
         glfwSetInputMode(this->w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glEnable(GL_DEPTH_TEST);
 
-        this->camera.setPosition(Camera::INIT_POSITION);
-        this->camera.setLookAtTarget(Camera::INIT_FRONT);
-        this->gui.setup(this->w);
-        this->gui.subscribe(Window::gui_callback);
+        this->camera.SetPosition(Camera::INIT_POSITION);
+        this->camera.SetLookAtTarget(Camera::INIT_FRONT);
+        this->gui.Setup(this->w);
+        this->gui.Subscribe(Window::gui_callback);
 
         Window::print_infomation();
-        log_debug("GLFW window initialized");
+        log_info("GLFW window initialized");
     }
 
     ~Window()
@@ -95,8 +96,63 @@ public:
         this->Terminate();
     }
 
-    void processInput(float deltaUpdateTime, float deltaRenderTime)
+    void Terminate()
     {
+        glfwTerminate();
+    }
+
+    bool ContinueLoop()
+    {
+        return !glfwWindowShouldClose(this->w);
+    }
+
+    void EnableStatisticGUI(int flag)
+    {
+        this->statistic = flag;
+    }
+
+    void AddObject(Object *object)
+    {
+        this->objects.insert(object);
+        GUIHandler *g = dynamic_cast<GUIHandler *>(object);
+        if (g)
+            this->gui.Subscribe(g);
+    }
+
+    void SubscribeGUI(GUI::Callback callback, void *data = nullptr)
+    {
+        this->gui.Subscribe(callback, data);
+    }
+
+    void Update(double now, double lastUpdateTime)
+    {
+        this->ProcessInput(now, lastUpdateTime);
+        for (auto &object : this->objects) {
+            object->Update(now, lastUpdateTime, this->w);
+        }
+    }
+
+    void Render(double now, double lastRenderTime)
+    {
+        float bgr = this->backgroundColor.x;
+        float bgg = this->backgroundColor.y;
+        float bgb = this->backgroundColor.z;
+        float bga = this->backgroundColor.w;
+        glClearColor(bgr, bgg, bgb, bga);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        float screenRatio = (float)this->SCR_WIDTH / (float)this->SCR_HEIGHT;
+        glm::mat4 projection = camera.GetProjectionMatrix(now, lastRenderTime, screenRatio);
+        glm::mat4 view = camera.GetViewMatrix();
+
+        for (auto &object : this->objects) {
+            object->Render(now, lastRenderTime, view, projection);
+        }
+        gui.Render(now, lastRenderTime);
+    }
+
+    void ProcessInput(double now, double lastTime)
+    {
+        float deltaTime = now - lastTime;
         bool keyTab = glfwGetKey(this->w, GLFW_KEY_TAB) == GLFW_PRESS;
         if (keyTab) {
             if (!this->keyTabStillPressing) {
@@ -121,53 +177,20 @@ public:
         bool keyRCtrl = glfwGetKey(this->w, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
         bool keyESC = glfwGetKey(this->w, GLFW_KEY_ESCAPE) == GLFW_PRESS;
 
-        if (keyW) this->camera.ProcessKeyboard(FORWARD, deltaUpdateTime);
-        if (keyS) this->camera.ProcessKeyboard(BACKWARD, deltaUpdateTime);
-        if (keyA) this->camera.ProcessKeyboard(LEFT, deltaUpdateTime);
-        if (keyD) this->camera.ProcessKeyboard(RIGHT, deltaUpdateTime);
-        if (keySpace) this->camera.ProcessKeyboard(UP, deltaUpdateTime);
-        if (keyLCtrl || keyRCtrl) this->camera.ProcessKeyboard(DOWN, deltaUpdateTime);
+        if (keyW) this->camera.ProcessKeyboard(FORWARD, deltaTime);
+        if (keyS) this->camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (keyA) this->camera.ProcessKeyboard(LEFT, deltaTime);
+        if (keyD) this->camera.ProcessKeyboard(RIGHT, deltaTime);
+        if (keySpace) this->camera.ProcessKeyboard(UP, deltaTime);
+        if (keyLCtrl || keyRCtrl) this->camera.ProcessKeyboard(DOWN, deltaTime);
 
         if (keyESC) glfwSetWindowShouldClose(this->w, true);
-    }
-
-    void Terminate()
-    {
-        glfwTerminate();
-    }
-
-    bool ContinueLoop()
-    {
-        return !glfwWindowShouldClose(this->w);
-    }
-
-    void TriggerRender(double now, double lastRenderTime)
-    {
-        gui.refresh(now, lastRenderTime);
     }
 
     void SwapBuffersAndPollEvents()
     {
         glfwSwapBuffers(this->w);
         glfwPollEvents();
-    }
-
-    void EnableStatisticGUI(int flag)
-    {
-        this->statistic = flag;
-    }
-
-    void AddObject(Object *object)
-    {
-        this->objects.insert(object);
-        GUIHandler *g = dynamic_cast<GUIHandler *>(object);
-        if (g)
-            this->gui.subscribe(g);
-    }
-
-    void SubscribeGUI(GUI::Callback callback, void *data = nullptr)
-    {
-        this->gui.subscribe(callback, data);
     }
 
     /***** utility functions *****/

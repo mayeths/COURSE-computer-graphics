@@ -19,8 +19,8 @@ public:
     glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
     GLfloat rotationAngle  = 0; /* in radians */
 public:
-    virtual void update(double now, double lastUpdateTime, GLFWwindow *window) {}
-    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {}
+    virtual void Update(double now, double lastUpdateTime, GLFWwindow *window) {}
+    virtual void Render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) = 0;
 
     void MoveTo(glm::vec3 newPosition)
     {

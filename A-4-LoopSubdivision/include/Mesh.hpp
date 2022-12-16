@@ -24,23 +24,23 @@ struct face_t;
 struct vertex_t {
     uint32_t ID = 0;
     glm::vec3 position = glm::vec3(0, 0, 0);
-    edge_t *belong = nullptr;  //edge which starts from this vertex
+    edge_t *belong = nullptr; // Edge which starts from this vertex
 };
 
 struct edge_t {
     uint32_t ID = 0;
+    bool crease = false; // A crease (or boundary)
     vertex_t *vertex = nullptr;
-    face_t *belong = nullptr;
     edge_t *twin = nullptr;
     edge_t *next = nullptr;
     edge_t *prev = nullptr;
-    bool crease = false; // A crease (or boundary)
+    face_t *belong = nullptr;
 };
 
 struct face_t {
     uint32_t ID = 0;
-    edge_t *edge = nullptr;
     glm::vec3 normal = glm::vec3(0, 0, 0);
+    edge_t *edge = nullptr; // Edge of this face
 };
 
 struct mesh_t {
@@ -68,6 +68,7 @@ public:
     int nowKeyEState = GLFW_RELEASE;
     glm::vec4 color = glm::vec4(0, 0, 0, 1.0);
     double boundingBoxSize = 10;
+    bool enableGUI = true;
 
     void SetShaderPath(const std::string vertexPath, const std::string fragmentPath)
     {
@@ -79,6 +80,10 @@ public:
     }
     void SetBoundingBoxSize(double boundingBoxSize) {
         this->boundingBoxSize = boundingBoxSize;
+    }
+    void EnableGUI(bool enableGUI)
+    {
+        this->enableGUI = enableGUI;
     }
 
     void Setup() {
@@ -146,21 +151,13 @@ public:
             edge2.ID = mesh.uuid_e++;
         }
 
-        this->setNormal(mesh);
-        this->findTwin(mesh, mesh.faces.size() * 3);
-        this->setCrease(mesh);
+        this->SetNormal(mesh);
+        this->FindTwin(mesh);
+        this->SetCrease(mesh);
 
-        log_debug("Mesh %d vertices %d faces", vertices.size(), faces.size());
+        log_debug("Mesh \"%s\" has %d vertices %d faces", this->meshPath.c_str(), vertices.size(), faces.size());
         this->OffloadCurrentMesh();
         this->guard.set();
-    }
-
-    void processInput(GLFWwindow *window)
-    {
-        this->oldKeyQState = this->nowKeyQState;
-        this->oldKeyEState = this->nowKeyEState;
-        this->nowKeyQState = glfwGetKey(window, GLFW_KEY_Q);
-        this->nowKeyEState = glfwGetKey(window, GLFW_KEY_E);
     }
 
     void TrySwitchMesh(int acc)
@@ -219,58 +216,23 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    virtual void update(double now, double lastUpdateTime, GLFWwindow *window)
-    {
-        if (this->oldKeyQState == GLFW_PRESS && this->nowKeyQState == GLFW_RELEASE) {
-            this->TrySwitchMesh(-1);
-        }
-        if (this->oldKeyEState == GLFW_PRESS && this->nowKeyEState == GLFW_RELEASE) {
-            this->TrySwitchMesh(+1);
-        }
-    }
-
-    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
-        this->guard.ensure();
-        this->shader.use();
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, this->position);
-        this->shader.setMat4("projection", projection);
-        this->shader.setMat4("view", view);
-        this->shader.setMat4("model", model);
-
-        glBindVertexArray(this->VAO.get());
-        this->shader.setVec4("color", this->color);
-        glDrawArrays(GL_TRIANGLES, 0, this->meshs[curr].faces.size() * 3);
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        {
-            this->shader.setVec4("color", glm::vec4(1, 1, 1, 1.0f));
-            glDrawArrays(GL_TRIANGLES, 0, this->meshs[curr].faces.size() * 3);
-        }
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-
     void LoopSubdivision(mesh_t &coarse, mesh_t &fine)
     {
         std::map<const edge_t *, vertex_t *> odds;
         std::map<const vertex_t *, vertex_t *> evens;
 
-        // old vertex
+        // odd vertex
         for (int i = 0; i < coarse.edges.size(); i++) {
             edge_t &edge = coarse.edges[i];
             if (odds[&edge])
                 continue;
             fine.vertices.resize(fine.vertices.size() + 1);
-            vertex_t &insertV = fine.vertices.back();
-            insertV.position.x = this->loopFomular(&edge, 'x');
-            insertV.position.y = this->loopFomular(&edge, 'y');
-            insertV.position.z = this->loopFomular(&edge, 'z');
-            insertV.ID = fine.uuid_v++;
-            odds[&edge] = &insertV;
+            vertex_t &odd = fine.vertices.back();
+            odd.position = this->ComputeOddPosition(edge);
+            odd.ID = fine.uuid_v++;
+            odds[&edge] = &odd;
             if (edge.twin != nullptr)
-                odds[edge.twin] = &insertV;
+                odds[edge.twin] = &odd;
         }
         // even vertex
         uint32_t vertex_count_old = 0;
@@ -278,14 +240,11 @@ public:
             vertex_t &vertex = coarse.vertices[i];
             edge_t *find = vertex.belong;
             std::vector<vertex_t> neighbour;
-            uint32_t valences = 0;
             do {
-                valences += 1;
                 neighbour.push_back(*odds[find]);
                 if (find->twin == nullptr) {
                     edge_t *findBack = vertex.belong->prev;
                     while (findBack != nullptr) {
-                        valences += 1;
                         neighbour.push_back(*odds[findBack]);
                         if (findBack->twin == nullptr)
                             break;
@@ -296,13 +255,11 @@ public:
                 find = find->twin->next;
             } while (find != vertex.belong);
 
-            vertex_t vertexUpdate;
-            vertexUpdate = vertex;
-            vertexUpdate.position.x = this->adjustFomular(&vertexUpdate, valences, 'x', neighbour, odds);
-            vertexUpdate.position.y = this->adjustFomular(&vertexUpdate, valences, 'y', neighbour, odds);
-            vertexUpdate.position.z = this->adjustFomular(&vertexUpdate, valences, 'z', neighbour, odds);
-            vertexUpdate.ID = fine.uuid_v++;
-            fine.vertices.push_back(vertexUpdate);
+            vertex_t even;
+            even = vertex;
+            even.position = this->RecomputeEvenPosition(even, odds, neighbour);
+            even.ID = fine.uuid_v++;
+            fine.vertices.push_back(even);
             evens[&coarse.vertices[i]] = &fine.vertices.back();
         }
         // remesh
@@ -358,148 +315,89 @@ public:
             evens[e_origin.vertex]->belong = &fine.edges[fine.edges.size() - 5];
         }
 
-        this->findTwin(fine, fine.edges.size());
-        this->setNormal(fine);
-        this->setCrease(fine);
+        this->FindTwin(fine);
+        this->SetNormal(fine);
+        this->SetCrease(fine);
+        log_debug("Mesh \"%s\" subdivision %d vertices %d faces",
+            this->meshPath.c_str(), fine.vertices.size(), fine.faces.size()
+        );
     }
 
-    double loopFomular(edge_t *insertEdge, char direction)
+    glm::vec3 ComputeOddPosition(const edge_t &edge)
     {
-        if (insertEdge->twin == nullptr || insertEdge->crease) {
-            vertex_t *a = insertEdge->vertex;
-            vertex_t *b = insertEdge->next->vertex;
-            if (direction == 'x') {
-                return (a->position.x + b->position.x) / 2.0;
-            } else if (direction == 'y') {
-                return (a->position.y + b->position.y) / 2.0;
-            } else if (direction == 'z') {
-                return (a->position.z + b->position.z) / 2.0;
-            } else {
-                throw std::runtime_error("you should not come here 1.0");
-            }
+        if (edge.twin == nullptr || edge.crease) {
+            vertex_t *a = edge.vertex;
+            vertex_t *b = edge.next->vertex;
+            return (a->position + b->position) / 2.0f;
         } else {
-            vertex_t *a = insertEdge->vertex;
-            vertex_t *b = insertEdge->next->vertex;
-            vertex_t *c = insertEdge->prev->vertex;
-            vertex_t *d = insertEdge->twin->prev->vertex;
-            if (direction == 'x') {
-                return (3.0 / 8.0) * (a->position.x + b->position.x) + (1.0 / 8.0) * (c->position.x + d->position.x);
-            } else if (direction == 'y') {
-                return (3.0 / 8.0) * (a->position.y + b->position.y) + (1.0 / 8.0) * (c->position.y + d->position.y);
-            } else if (direction == 'z') {
-                return (3.0 / 8.0) * (a->position.z + b->position.z) + (1.0 / 8.0) * (c->position.z + d->position.z);
-            } else {
-                throw std::runtime_error("you should not come here 2.0");
-            }
+            vertex_t *a = edge.vertex;
+            vertex_t *b = edge.next->vertex;
+            vertex_t *c = edge.prev->vertex;
+            vertex_t *d = edge.twin->prev->vertex;
+            return (3.0f / 8.0f) * (a->position + b->position) + (1.0f / 8.0f) * (c->position + d->position);
         }
     }
 
-    double adjustFomular(vertex_t *v, uint32_t valence, char direction, std::vector<vertex_t> neighbour, std::map<const edge_t *, vertex_t *> &odds)
+    glm::vec3 RecomputeEvenPosition(vertex_t &even, std::map<const edge_t *, vertex_t *> &odds, const std::vector<vertex_t> &neighbour)
     {
-        edge_t *edge = v->belong;
+        edge_t *edge = even.belong;
         if (edge->twin == nullptr || edge->crease) {
             vertex_t *a = odds[edge];
             vertex_t *b = odds[edge->prev];
-            if (direction == 'x')
-                return (1.0 / 8.0) * (a->position.x + b->position.x) + (3.0 / 4.0) * (v->position.x);
-            else if (direction == 'y')
-                return (1.0 / 8.0) * (a->position.y + b->position.y) + (3.0 / 4.0) * (v->position.y);
-            else if (direction == 'z')
-                return (1.0 / 8.0) * (a->position.z + b->position.z) + (3.0 / 4.0) * (v->position.z);
-            else
-                throw std::runtime_error("you should not come here 3.0");
+            return (1.0f / 8.0f) * (a->position + b->position) + (3.0f / 4.0f) * even.position;
         } else {
-            double n = (double)valence;
-            double beta = 0;
-
+            float n = (float)neighbour.size();
+            float beta = 0;
             /* Loop's suggestion for beta */
-            double x = (3.0 / 8.0 + 1.0 / 4.0 * cos(2.0 * M_PI / n));
+            float x = (3.0 / 8.0 + 1.0 / 4.0 * cos(2.0 * M_PI / n));
             beta = (1.0 / n) * (5.0 / 8.0 - x * x);
             /* Warren's suggestion for beta */
-            // if (valence == 3)
+            // if (neighbour.size() == 3)
             //     beta = 3.0 / 16.0;
-            // else if (valence > 3)
+            // else if (neighbour.size() > 3)
             //     beta = 3.0 / (8.0 * n);
             // else
             //     throw std::runtime_error("you should not come here 4.0.0");
-
-            double sum = 0;
-            if (direction == 'x') {
-                for (int i = 0; i < neighbour.size(); i++)
-                    sum += neighbour[i].position.x;
-                return v->position.x * (1.0 - n * beta) + sum * beta;
-            } else if (direction == 'y') {
-                for (int i = 0; i < neighbour.size(); i++)
-                    sum += neighbour[i].position.y;
-                return v->position.y * (1.0 - n * beta) + sum * beta;
-            } else if (direction == 'z') {
-                for (int i = 0; i < neighbour.size(); i++)
-                    sum += neighbour[i].position.z;
-                return v->position.z * (1.0 - n * beta) + sum * beta;
-            } else {
-                throw std::runtime_error("you should not come here 4.0");
-            }
-
+            glm::vec3 sum = glm::vec3(0.0f, 0.0f, 0.0f);
+            for (int i = 0; i < neighbour.size(); i++)
+                sum += neighbour[i].position;
+            return even.position * (1.0f - n * beta) + sum * beta;
         }
     }
 
-
-    //find the twin of edges
-    void findTwin(mesh_t &mesh, uint32_t edge_count)
+    void FindTwin(mesh_t &mesh)
     {
-        for (uint32_t i = 0; i < edge_count; i++)
-            for (uint32_t j = i + 1; j < edge_count; j++) {
-                if (((mesh.edges)[i]).twin)
+        for (size_t i = 0; i < mesh.edges.size(); i++) {
+            edge_t &ei = mesh.edges[i];
+            for (size_t j = i + 1; j < mesh.edges.size(); j++) {
+                edge_t &ej = mesh.edges[j];
+                if (ei.twin)
                     break;
-                if (((mesh.edges)[j]).twin)
+                if (ej.twin)
                     continue;
-                if (((mesh.edges)[i]).vertex == (*((mesh.edges)[j]).next).vertex && ((mesh.edges)[j]).vertex == (*((mesh.edges)[i]).next).vertex) {
-                    ((mesh.edges)[i]).twin = &(mesh.edges)[j];
-                    ((mesh.edges)[j]).twin = &(mesh.edges)[i];
+                if (ei.vertex == ej.next->vertex && ej.vertex == ei.next->vertex) {
+                    ei.twin = &ej;
+                    ej.twin = &ei;
                 }
             }
-    }
-    //compute normal
-    void setNormal(mesh_t &mesh)
-    {
-        uint32_t i = 0;
-        // log_trace("total face %d", (*mesh).faces.size());
-        for (auto it = mesh.faces.begin(); it != mesh.faces.end(); it++, i++) {
-            // log_trace("face %p(%u)", it, (*it).ID);
-            edge_t *vertex = (*it).edge;
-            // log_trace("    boundary %p(%u)", vertex, (*vertex).ID);
-            // v1 is first vector of the face, v2 is the second vector, vn is the normal
-            glm::vec3 v1, v2, vn;
-            vertex_t &p0 = *(*vertex).vertex;
-            // log_trace("    p0 %p(%u)", &p0, p0.ID);
-            vertex_t &p1 = *(*(*vertex).next).vertex;
-            // log_trace("    p1 %p(%u)", &p1, p1.ID);
-            vertex_t &p2 = *(*(*vertex).prev).vertex;
-            // log_trace("    p2 %p(%u)", &p2, p2.ID);
-            double length;
-            //compute normal
-            v1.x = p0.position.x - p1.position.x;
-            v1.y = p0.position.y - p1.position.y;
-            v1.z = p0.position.z - p1.position.z;
-            v2.x = p0.position.x - p2.position.x;
-            v2.y = p0.position.y - p2.position.y;
-            v2.z = p0.position.z - p2.position.z;
-            vn.x = v1.y * v2.z - v1.z * v2.y;
-            vn.y = v1.z * v2.x - v1.x * v2.z;
-            vn.z = v1.x * v2.y - v1.y * v2.x;
-            length = sqrt((vn.x * vn.x) + (vn.y * vn.y) + (vn.z * vn.z));
-            if (length == 0.0) {
-                std::cout << "Wrong ID, a vector's length is 0.";
-                return;
-            }
-            vn.x /= length;
-            vn.y /= length;
-            vn.z /= length;
-            (*it).normal = vn;
         }
     }
 
-    void setCrease(mesh_t &mesh)
+    void SetNormal(mesh_t &mesh)
+    {
+        for (size_t i = 0; i < mesh.faces.size(); i++) {
+            face_t &face = mesh.faces[i];
+            glm::vec3 p0 = face.edge->vertex->position;
+            glm::vec3 p1 = face.edge->next->vertex->position;
+            glm::vec3 p2 = face.edge->prev->vertex->position;
+            glm::vec3 normal = glm::cross(p0 - p1, p0 - p2);
+            if (glm::length(normal) == 0.0)
+                throw std::runtime_error("A normal length is 0");
+            face.normal = glm::normalize(normal);
+        }
+    }
+
+    void SetCrease(mesh_t &mesh)
     {
         std::map<const edge_t *, bool> checked;
         for (int i= 0; i < mesh.edges.size(); i++) {
@@ -586,9 +484,6 @@ public:
         bounding = std::max(bounding, maxcoords[0] - mincoords[0]);
         bounding = std::max(bounding, maxcoords[1] - mincoords[1]);
         bounding = std::max(bounding, maxcoords[2] - mincoords[2]);
-        log_trace("%f %f %f", mincoords[0], mincoords[1], mincoords[2]);
-        log_trace("%f %f %f", maxcoords[0], maxcoords[1], maxcoords[2]);
-        assert(bounding != 0);
         double scale = boundingBoxSize / bounding;
         for (int i = 0; i < vertices.size(); i++) {
             vertices[i][0] *= scale;
@@ -600,8 +495,46 @@ public:
         return std::make_pair(vertices, faces);
     }
 
-    virtual void refresh(double now, double lastTime, GLFWwindow *window)
+    virtual void Update(double now, double lastUpdateTime, GLFWwindow *window)
     {
+        this->oldKeyQState = this->nowKeyQState;
+        this->oldKeyEState = this->nowKeyEState;
+        this->nowKeyQState = glfwGetKey(window, GLFW_KEY_Q);
+        this->nowKeyEState = glfwGetKey(window, GLFW_KEY_E);
+        if (this->oldKeyQState == GLFW_PRESS && this->nowKeyQState == GLFW_RELEASE) {
+            this->TrySwitchMesh(-1);
+        }
+        if (this->oldKeyEState == GLFW_PRESS && this->nowKeyEState == GLFW_RELEASE) {
+            this->TrySwitchMesh(+1);
+        }
+    }
+
+    virtual void Render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
+        this->guard.ensure();
+        this->shader.use();
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, this->position);
+        this->shader.setMat4("projection", projection);
+        this->shader.setMat4("view", view);
+        this->shader.setMat4("model", model);
+
+        glBindVertexArray(this->VAO.get());
+        this->shader.setVec4("color", this->color);
+        glDrawArrays(GL_TRIANGLES, 0, this->meshs[curr].faces.size() * 3);
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        {
+            this->shader.setVec4("color", glm::vec4(1, 1, 1, 1.0f));
+            glDrawArrays(GL_TRIANGLES, 0, this->meshs[curr].faces.size() * 3);
+        }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    virtual void RenderGUI(double now, double lastTime, GLFWwindow *window)
+    {
+        if (!this->enableGUI)
+            return;
         int width = 0;
         int height = 0;
         glfwGetWindowSize(window, &width, &height);

@@ -12,7 +12,7 @@
 class GUIHandler
 {
 public:
-    virtual void refresh(double now, double lastTime, GLFWwindow *window) = 0;
+    virtual void RenderGUI(double now, double lastTime, GLFWwindow *window) = 0;
 };
 
 
@@ -34,7 +34,7 @@ public:
         }
     }
 
-    void setup(GLFWwindow *window, const char *GLSLVersion = "#version 330")
+    void Setup(GLFWwindow *window, const char *GLSLVersion = "#version 330")
     {
         if (window == nullptr)
             return;
@@ -46,25 +46,25 @@ public:
         this->guard.set();
     }
 
-    void subscribe(GUIHandler *obj)
+    void Subscribe(GUIHandler *obj)
     {
         this->guard.ensure();
         this->objects.push_back(obj);
     }
-    void subscribe(GUI::Callback callback, void *data = nullptr)
+    void Subscribe(GUI::Callback callback, void *data = nullptr)
     {
         this->guard.ensure();
         this->functions.push_back(std::make_pair(callback, data));
     }
 
-    void refresh(double now, double lastRenderTime)
+    void Render(double now, double lastRenderTime)
     {
         this->guard.ensure();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         for (int i = 0; i < this->objects.size(); i++)
-            this->objects[i]->refresh(now, lastRenderTime, window);
+            this->objects[i]->RenderGUI(now, lastRenderTime, window);
         for (int i = 0; i < this->functions.size(); i++) {
             GUI::Callback callback = this->functions[i].first;
             void *data = this->functions[i].second;

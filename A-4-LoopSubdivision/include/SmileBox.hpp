@@ -139,7 +139,7 @@ public:
         glBindVertexArray(0);
     }
 
-    virtual void render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
+    virtual void Render(double now, double lastRenderTime, const glm::mat4 &view, const glm::mat4 &projection) {
         this->texture0.Active(GL_TEXTURE0);
         this->texture1.Active(GL_TEXTURE1);
         this->shader.use();
