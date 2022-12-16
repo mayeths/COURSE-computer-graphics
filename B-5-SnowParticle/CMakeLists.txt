@@ -1,163 +1,98 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Define target CPU architecture.
-SET(ARCH "universal" CACHE STRING "Target CPU architecture.")
-if (ARCH STREQUAL "universal")
-  message("Target CPU architecture: x86_64;arm64 (universal)")
-#   SET(CMAKE_OSX_ARCHITECTURES arm64)
-  SET(CMAKE_OSX_ARCHITECTURES x86_64;arm64)
-elseif (ARCH STREQUAL "x86_64")
-  message("Target CPU architecture: x86_64")
-  SET(CMAKE_OSX_ARCHITECTURES x86_64)
-elseif (ARCH STREQUAL "arm64")
-  message("Target CPU architecture: arm64")
-  SET(CMAKE_OSX_ARCHITECTURES arm64)
-else()
-  message(FATAL_ERROR "Unsupported CPU architecture!")
-endif()
-
-set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
-
 project(SnowParticle)
-set(EXE ${PROJECT_NAME})
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
+option(ENABLE_FREETYPE "Enable support of freetype." OFF)
+option(COPY_ASSETS "Copy assets/ folder into build directory" ON)
 
-### Source and external package files
+set(EXECUTABLE ${PROJECT_NAME})
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(GLFW_DIR "${EXT_DIR}/glfw")
-set(GLAD_DIR "${EXT_DIR}/glad")
-set(GLM_DIR "${EXT_DIR}/glm")
-set(SOIL_DIR "${EXT_DIR}/soil")
-set(FREETYPE_DIR "${EXT_DIR}/freetype")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+aux_source_directory(${SRC_DIR} SOURCE_FILES)
+add_executable(${EXECUTABLE} ${SOURCE_FILES})
+set_property(TARGET ${EXECUTABLE} PROPERTY CXX_STANDARD 17)
+target_include_directories(${EXECUTABLE} PRIVATE "${INC_DIR}")
 
-set(GLFW_DIR "${EXT_DIR}/glfw")
-set(SOIL_DIR "${EXT_DIR}/soil")
-set(FREETYPE_DIR "${EXT_DIR}/freetype")
-link_directories(${GLFW_DIR}/lib-${ARCH} ${SOIL_DIR}/lib-${ARCH} ${FREETYPE_DIR}/lib-${ARCH})
+# External Libraries
+set(FREETYPE_DIR "${EXTERNAL_DIR}/freetype-2.12.1")
+set(GLAD_DIR "${EXTERNAL_DIR}/glad-0.1.36")
+set(GLFW_DIR "${EXTERNAL_DIR}/glfw-3.3.8")
+set(GLM_DIR "${EXTERNAL_DIR}/glm-0.9.9.8")
+set(IMGUI_DIR "${EXTERNAL_DIR}/imgui-1.88")
+set(STB_DIR "${EXTERNAL_DIR}/stb-2.27")
 
-### Target: executable
-aux_source_directory(${SRC_DIR} SOURCES)
-add_executable(${EXE} ${SOURCES})
-target_include_directories(${EXE} PRIVATE "${INC_DIR}")
-set_property(TARGET ${EXE} PROPERTY CXX_STANDARD 17)
-
-### External Libraries
-# OpenGL
-find_library(OPENGL_LIB OpenGL)
-target_link_libraries(${EXE} ${OPENGL_LIB})
-# cocoa
-find_library(COCOA_LIB Cocoa)
-target_link_libraries(${EXE} ${COCOA_LIB})
-# iokit
-find_library(IO_KIT_LIB IOKit)
-target_link_libraries(${EXE} ${IO_KIT_LIB})
-
-# Mac OS Libraries
-target_link_libraries(${EXE} ${COCOA_LIB} ${OpenGL_LIB} ${IO_KIT_LIB})
+# OS Libraries
+if(WIN32)
+  message(FATAL_ERROR "Unsupported OS")
+elseif(APPLE)
+  find_library(OPENGL_LIB OpenGL REQUIRED)
+  find_library(COCOA_LIB Cocoa REQUIRED)
+  find_library(IOKIT_LIB IOKit REQUIRED)
+  target_link_libraries(${EXECUTABLE} ${OPENGL_LIB} ${COCOA_LIB} ${IOKIT_LIB})
+elseif(UNIX)
+  message(FATAL_ERROR "Unsupported OS")
+endif()
 
 # GLFW
-target_link_libraries(${EXE} glfw3)
-target_include_directories(${EXE} PRIVATE "${GLFW_DIR}/include")
-target_compile_definitions(${EXE} PRIVATE "GLFW_INCLUDE_NONE")
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(${GLFW_DIR} build.glfw)
+target_link_libraries(${EXECUTABLE} glfw)
+target_include_directories(${EXECUTABLE} PRIVATE "${GLFW_DIR}/include")
+target_compile_definitions(${EXECUTABLE} PRIVATE "GLFW_INCLUDE_NONE")
 
 # GLAD
 add_library("glad" "${GLAD_DIR}/src/glad.c")
 target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
-target_include_directories(${EXE} PRIVATE "${GLAD_DIR}/include")
-target_link_libraries(${EXE} "glad" "${CMAKE_DL_LIBS}")
+target_include_directories(${EXECUTABLE} PRIVATE "${GLAD_DIR}/include")
+target_link_libraries(${EXECUTABLE} "glad" "${CMAKE_DL_LIBS}")
+
+# STB
+add_library("stb" "${STB_DIR}/src/stb.c")
+target_include_directories("stb" PRIVATE "${STB_DIR}/include")
+target_include_directories(${EXECUTABLE} PRIVATE "${STB_DIR}/include")
+target_link_libraries(${EXECUTABLE} "stb")
 
 # GLM
-target_include_directories(${EXE} PRIVATE "${GLM_DIR}")
-
-# SOIL
-target_link_libraries(${EXE} SOIL)
-target_include_directories(${EXE} PRIVATE "${SOIL_DIR}/include")
+target_include_directories(${EXECUTABLE} PRIVATE "${GLM_DIR}")
 
 # Freetype
-target_link_libraries(${EXE} freetype)
-target_include_directories(${EXE} PRIVATE "${FREETYPE_DIR}/include")
+if(ENABLE_FREETYPE)
+  set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+  add_subdirectory(${FREETYPE_DIR} build.freetype)
+  target_link_libraries(${EXECUTABLE} freetype)
+  target_include_directories(${EXECUTABLE} PRIVATE "${FREETYPE_DIR}/include")
+endif()
 
-set(IMGUI_DIR "${EXT_DIR}/imgui")
+# ImGui
 add_library("imgui" STATIC)
-
 set_property(TARGET "imgui" PROPERTY CXX_STANDARD 17)
-target_sources( "imgui"
-                PRIVATE
-                    ${IMGUI_DIR}/imgui_demo.cpp
-                    ${IMGUI_DIR}/imgui_draw.cpp
-                    ${IMGUI_DIR}/imgui_tables.cpp
-                    ${IMGUI_DIR}/imgui_widgets.cpp
-                    ${IMGUI_DIR}/imgui.cpp
-
-                PRIVATE
-                    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-                    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-                )
-
+target_sources("imgui"
+  PRIVATE
+  ${IMGUI_DIR}/imgui_demo.cpp
+  ${IMGUI_DIR}/imgui_draw.cpp
+  ${IMGUI_DIR}/imgui_tables.cpp
+  ${IMGUI_DIR}/imgui_widgets.cpp
+  ${IMGUI_DIR}/imgui.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+)
 target_include_directories("imgui" PRIVATE "${GLFW_DIR}/include")
 target_include_directories("imgui" PRIVATE "${GLAD_DIR}/include")
-
-target_include_directories( "imgui"
-                            PUBLIC ${IMGUI_DIR}
-                            PUBLIC ${IMGUI_DIR}/backends
-                            PUBLIC ${IMGUI_DIR}/backends
-                            )
-
-find_package(OpenGL REQUIRED)
-target_link_libraries("imgui" PUBLIC ${OPENGL_LIBRARIES})
-# target_link_libraries("imgui" PUBLIC SDL2main SDL2 ${CMAKE_DL_LIBS})
-
-target_link_libraries(${EXE} "imgui")
+target_include_directories("imgui"
+  PUBLIC ${IMGUI_DIR}
+  PUBLIC ${IMGUI_DIR}/backends
+)
+target_link_libraries("imgui" PUBLIC ${OPENGL_LIB})
+target_link_libraries(${EXECUTABLE} "imgui")
 
 # Resources
 add_custom_target(copy_assets
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets
 )
-add_dependencies(${EXE} copy_assets)
-
-# # glfw
-# target_compile_definitions(${EXE} PRIVATE "GLFW_INCLUDE_NONE")
-# target_include_directories(${EXE} PRIVATE "${GLFW_DIR}/include")
-# find_library(GLFW3_LIB glfw3 PATHS ${GLFW_DIR}/lib-${ARCH} NO_DEFAULT_PATH)
-# target_link_libraries(${EXE} ${GLFW3_LIB})
-# # glad
-# set(GLAD_DIR "${EXT_DIR}/glad")
-# add_library("glad" "${GLAD_DIR}/src/glad.c")
-# target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
-# target_include_directories(${EXE} PRIVATE "${GLAD_DIR}/include")
-# target_link_libraries(${EXE} glad)
-# # glm
-# set(GLM_DIR "${EXT_DIR}/glm")
-# target_include_directories(${EXE} PRIVATE "${GLM_DIR}")
-# # soil
-# target_include_directories(${EXE} PRIVATE "${SOIL_DIR}/include")
-# find_library(SOIL_LIB SOIL PATHS ${SOIL_DIR}/lib-${ARCH} NO_DEFAULT_PATH)
-# target_link_libraries(${EXE} ${SOIL_LIB})
-# # freetype
-# target_include_directories(${EXE} PRIVATE "${FREETYPE_DIR}/include")
-# find_library(FREETYPE_LIB freetype PATHS ${FREETYPE_DIR}/lib-${ARCH} NO_DEFAULT_PATH)
-# target_link_libraries(${EXE} ${FREETYPE_LIB})
-# imgui
-# set(IMGUI_DIR "${EXT_DIR}/imgui")
-# add_library("imgui" STATIC)
-# set_property(TARGET "imgui" PROPERTY CXX_STANDARD 17)
-# target_sources("imgui"
-#     PRIVATE
-#     ${IMGUI_DIR}/imgui_demo.cpp
-#     ${IMGUI_DIR}/imgui_draw.cpp
-#     ${IMGUI_DIR}/imgui_tables.cpp
-#     ${IMGUI_DIR}/imgui_widgets.cpp
-#     ${IMGUI_DIR}/imgui.cpp
-#     PRIVATE
-#     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-#     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-# )
-# target_include_directories("imgui" PRIVATE "${GLFW_DIR}/include")
-# target_include_directories("imgui" PRIVATE "${GLAD_DIR}/include")
-# target_include_directories( "imgui"
-#     PUBLIC ${IMGUI_DIR}
-#     PUBLIC ${IMGUI_DIR}/backends
-# )
-# target_link_libraries("imgui" ${OPENGL_LIB})
-# target_link_libraries(${EXE} imgui)
+if(COPY_ASSETS)
+  add_dependencies(${EXECUTABLE} copy_assets)
+endif()
