@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\collision.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='collision|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\collision.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='pool|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\pool.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='collision_stress|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\collision_stress.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='spring_rotation|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\spring_rotation.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='rotation_test|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\rotation_test.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='newtons_cradle|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\newtons_cradle.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='damping_test|Win32'">
+    <LocalDebuggerCommandArguments>C:\Users\TH\Desktop\liu-course\A-3-PhysicalEngine\scenes\damping_test.scene</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>

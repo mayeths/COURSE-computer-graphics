@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "physics", "physics.vcxproj", "{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		collision_stress|Win32 = collision_stress|Win32
+		collision|Win32 = collision|Win32
+		damping_test|Win32 = damping_test|Win32
+		newtons_cradle|Win32 = newtons_cradle|Win32
+		rotation_test|Win32 = rotation_test|Win32
+		spring_rotation|Win32 = spring_rotation|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.collision_stress|Win32.ActiveCfg = collision_stress|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.collision_stress|Win32.Build.0 = collision_stress|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.collision|Win32.ActiveCfg = collision|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.collision|Win32.Build.0 = collision|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.damping_test|Win32.ActiveCfg = damping_test|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.damping_test|Win32.Build.0 = damping_test|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.newtons_cradle|Win32.ActiveCfg = newtons_cradle|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.newtons_cradle|Win32.Build.0 = newtons_cradle|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.rotation_test|Win32.ActiveCfg = rotation_test|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.rotation_test|Win32.Build.0 = rotation_test|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.spring_rotation|Win32.ActiveCfg = spring_rotation|Win32
+		{609006E8-2F51-494E-8EDA-F42E9BB8DF0E}.spring_rotation|Win32.Build.0 = spring_rotation|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
