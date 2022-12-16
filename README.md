@@ -15,7 +15,7 @@
 
 ### A-3物理碰撞
 
-本作业参考了[ShuchangXu](https://github.com/ShuchangXu/ComputerGraphics)、[xinlongz](https://github.com/xinlongz/ComputerGraphics)、[mahardiansyahkartika](https://github.com/mahardiansyahkartika/Computer-Graphics)的代码。实现以`physics.cpp`中的`Physics::step(real_t dt)`为入口，完成如下流程：
+本作业参考了[zhangfeiran](https://github.com/zhangfeiran/PhysicalEngine)、[xinlongz](https://github.com/xinlongz/ComputerGraphics)、[mahardiansyahkartika](https://github.com/mahardiansyahkartika/Computer-Graphics)的代码。实现以`physics.cpp`中的`Physics::step(real_t dt)`为入口，完成如下流程：
 
 1. 对每个物体都与环境进行交互，即一个`do_environment_interactive`过程，首先检测物体之间如球体与三角形、平面的碰撞检测，再对物体施加重力和spring作用（通俗来说就是模拟物体的荡秋千，有两个场景是每根绳子拴着一个球，spring就是实现荡秋千似的锤摆离心力），将交互结果更新到物体的受力`force`和扭矩`torque`两个变量中。但是为了写的简单，碰撞检测直接更新速度，只有重力和spring更新到受力和扭矩中。
    - 球体与球体碰撞，遵守动量守恒定律更新两个球体的速度；
