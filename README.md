@@ -116,7 +116,7 @@
 
 <img src="images/README/image-20221211152026721.png" alt="image-20221211152026721" style="zoom:33%;" />
 
-### C-1 简单三角形
+### C-1简单三角形
 
 本作业比较简单，参考LearnOpenGL的Getting Start。实现中使用Dear ImGUI制作了一个Color Picker，右键即可打开和关闭Color Picker。
 
