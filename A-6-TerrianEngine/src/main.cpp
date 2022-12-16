@@ -1,5 +1,4 @@
 #include <GLFW/glfw3.h>
-#include <SOIL.h>
 #include <glad/glad.h>
 #include <stdio.h>
 #include <string.h>
