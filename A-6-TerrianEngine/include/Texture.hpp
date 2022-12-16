@@ -2,16 +2,12 @@
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <stb_image.h>
 
 #include <iostream>
 #include <string>
 
 #include "log.h"
-#ifdef STB_IMAGE_IMPLEMENTATION
-#undef STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_IMPLEMENTATION
-#endif
 
 using namespace std;
 

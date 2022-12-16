@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <stdio.h>
 #include <string.h>
+#include <stb_image.h>
 
 #include <array>
 #include <vector>
@@ -11,8 +12,6 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 #include "log.h"
 #include "Scene.hpp"

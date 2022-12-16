@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <stdint.h>
+#include <stb_image.h>
 
 #include <string>
 #include <map>
@@ -17,8 +18,6 @@
 #include "util/log.h"
 #define MEMORY_IMPL
 #include "util/memory.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "util/stb_image.h"
 
 
 class Window {

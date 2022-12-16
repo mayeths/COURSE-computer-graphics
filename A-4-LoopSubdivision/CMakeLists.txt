@@ -4,6 +4,7 @@ project(LoopSubdivision)
 set(ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
 option(ENABLE_FREETYPE "Enable support of freetype." OFF)
+option(COPY_ASSETS "Copy assets/ folder into build directory" ON)
 
 set(EXECUTABLE ${PROJECT_NAME})
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -18,6 +19,7 @@ target_include_directories(${EXECUTABLE} PRIVATE "${INC_DIR}")
 set(GLFW_DIR "${EXTERNAL_DIR}/glfw-3.3.8")
 set(GLAD_DIR "${EXTERNAL_DIR}/glad")
 set(GLM_DIR "${EXTERNAL_DIR}/glm")
+set(STB_DIR "${EXTERNAL_DIR}/stb")
 set(FREETYPE_DIR "${EXTERNAL_DIR}/freetype-2.12.1")
 set(IMGUI_DIR "${EXTERNAL_DIR}/imgui")
 
@@ -47,6 +49,12 @@ add_library("glad" "${GLAD_DIR}/src/glad.c")
 target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 target_include_directories(${EXECUTABLE} PRIVATE "${GLAD_DIR}/include")
 target_link_libraries(${EXECUTABLE} "glad" "${CMAKE_DL_LIBS}")
+
+# STB
+add_library("stb" "${STB_DIR}/src/stb.c")
+target_include_directories("stb" PRIVATE "${STB_DIR}/include")
+target_include_directories(${EXECUTABLE} PRIVATE "${STB_DIR}/include")
+target_link_libraries(${EXECUTABLE} "stb")
 
 # GLM
 target_include_directories(${EXECUTABLE} PRIVATE "${GLM_DIR}")
@@ -85,4 +93,6 @@ target_link_libraries(${EXECUTABLE} "imgui")
 add_custom_target(copy_assets
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets
 )
-add_dependencies(${EXECUTABLE} copy_assets)
+if(COPY_ASSETS)
+  add_dependencies(${EXECUTABLE} copy_assets)
+endif()
