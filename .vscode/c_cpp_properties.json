@@ -8,12 +8,12 @@
                 "/Library/Developer/CommandLineTools/usr/include",
                 "/usr/local/include",
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/external/freetype/include",
-                "${workspaceFolder}/external/glad/include",
-                "${workspaceFolder}/external/glfw/include",
-                "${workspaceFolder}/external/glm",
-                "${workspaceFolder}/external/imgui",
-                "${workspaceFolder}/external/soil/include"
+                "${workspaceFolder}/external/freetype-2.12.1/include",
+                "${workspaceFolder}/external/glad-0.1.36/include",
+                "${workspaceFolder}/external/glfw-3.3.8/include",
+                "${workspaceFolder}/external/glm-0.9.9.8",
+                "${workspaceFolder}/external/imgui-1.88",
+                "${workspaceFolder}/external/stb-2.27"
             ],
             "defines": [],
             "macFrameworkPath": [
@@ -23,7 +23,6 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "macos-clang-arm64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
