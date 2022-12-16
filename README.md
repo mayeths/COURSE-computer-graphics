@@ -1,8 +1,8 @@
 ## 作业报告
 
-本仓库基于助教提供的[MacOS框架](https://github.com/RainEggplant/opengl-mac-boilerplate)，简单实现了A-3物理碰撞、A-4网格加密、A-5光线追踪、A-6山体贴图、B-5雪花粒子、C-1简单渲染共六个作业。A-4作业中的框架是最后整理的，用来后续开发新东西会比较方便。
+本仓库基于助教提供的[MacOS框架](https://github.com/RainEggplant/opengl-mac-boilerplate)，简单实现了A-3物理碰撞、A-4网格加密、A-5光线追踪、A-6山体贴图、B-5雪花粒子、C-1简单渲染共六个作业。
 
-其中，A-3物理引擎和A-5光线追踪两个作业提供了Windows下运行的依赖库与初始框架，本人花很长时间移植到MacOS上没有成功。而且最后完成A-3物理引擎作业时，才发现它自带的依赖库无法与VS 2019的工具链搭配，不得已下载旧的VS 2012进行开发。A-4网格加密和A-6山体引擎用的是本人自己学习[LearnOpenGL](https://learnopengl.com/)搭建的，在MacOS下运行。
+其中，A-3物理引擎和A-5光线追踪两个作业提供了Windows下运行的依赖库与初始框架，本人花很长时间移植到MacOS上没有成功。而且最后完成A-3物理引擎作业时，才发现它自带的依赖库无法与VS 2019的工具链搭配，不得已下载旧的VS 2012进行开发。MacOS下完成的作业使用了学习[LearnOpenGL](https://learnopengl.com/)并沿袭改造的框架。A-4作业中的框架是最后整理的，用来后续开发新东西会比较方便。
 
 - A-3物理碰撞：Windows VS 2012开发（第四个完成的作业）
 - A-4网格加密：MacOS 开发（第五个完成的作业）
@@ -12,6 +12,20 @@
 - C-1简单渲染：MacOS开发（凑分数的作业）
 
 通过上述作业了解并学习了图形学碰撞、网格、光线、贴图、粒子共五个分支，认识到了不用CUDA编程的负载是如何看待图形处理单元（GPU）。
+
+### 编译
+
+在Windows下开发的代码下载对应的VS IDE即可。MacOS开发的代码在`macOS Monterey (Version 12.6, Apple M1 silicon)`完成了测试，参考编译如下：
+```bash
+clang --version # Homebrew clang version 15.0.6
+cmake --version # cmake version 3.25.1
+cd A-4-LoopSubdivision # or cd A-6,B-5,C-1
+mkdir build
+cd build
+cmake ..
+make -j
+./bin/LoopSubdivision
+```
 
 ### A-3物理碰撞
 
