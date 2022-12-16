@@ -16,12 +16,12 @@ set_property(TARGET ${EXECUTABLE} PROPERTY CXX_STANDARD 17)
 target_include_directories(${EXECUTABLE} PRIVATE "${INC_DIR}")
 
 # External Libraries
-set(GLFW_DIR "${EXTERNAL_DIR}/glfw-3.3.8")
-set(GLAD_DIR "${EXTERNAL_DIR}/glad")
-set(GLM_DIR "${EXTERNAL_DIR}/glm")
-set(STB_DIR "${EXTERNAL_DIR}/stb")
 set(FREETYPE_DIR "${EXTERNAL_DIR}/freetype-2.12.1")
-set(IMGUI_DIR "${EXTERNAL_DIR}/imgui")
+set(GLAD_DIR "${EXTERNAL_DIR}/glad-0.1.36")
+set(GLFW_DIR "${EXTERNAL_DIR}/glfw-3.3.8")
+set(GLM_DIR "${EXTERNAL_DIR}/glm-0.9.9.8")
+set(IMGUI_DIR "${EXTERNAL_DIR}/imgui-1.88")
+set(STB_DIR "${EXTERNAL_DIR}/stb-2.27")
 
 # OS Libraries
 if(WIN32)
