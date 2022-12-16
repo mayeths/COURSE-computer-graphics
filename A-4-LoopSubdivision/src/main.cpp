@@ -1,5 +1,4 @@
 #include <GLFW/glfw3.h>
-#include <SOIL.h>
 #include <glad/glad.h>
 #include <stdio.h>
 #include <string.h>
@@ -61,7 +60,7 @@ int main() {
     }
 
     Mesh mesh;
-    mesh.SetMeshPath("assets/meshs/cow.1.mesh");
+    mesh.SetMeshPath("assets/meshs/teddy.1.mesh");
     mesh.SetShaderPath("assets/shaders/mesh.vs", "assets/shaders/mesh.fs");
     mesh.SetBoundingBoxSize(10.0);
     mesh.MoveTo(glm::vec3(0, 0, -10));
