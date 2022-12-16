@@ -1,0 +1,157 @@
+background
+	color= 0.1 0.1 0.1
+end
+
+camera
+	O= -2 2 0.5
+	N= 0.6 1 -0.6
+	shade_quality= 1
+	drefl_quality= 1
+	image_H= 760
+	image_W= 1280
+	lens_H= 0.6
+	lens_W= 1.0
+end
+
+light point
+	O= 3 3 3
+	color= 2 2 2
+end
+
+//light square
+	//O= 3 3 3
+	//O= 2.5 6.3 -1.6
+//	O= 0.5 6 -0.5
+//	Dx= 0.2 0 0
+//	Dy= 0 0.2 0
+	//248 150 30
+	//color= 1 1 1
+	//248 150 30
+	//color= 0.97254 0.58823 0.117647
+	//255 253 219
+//	color= 1 0.99216 0.858823
+//end
+
+//light sphere
+	//O= -0.8 6 2
+//	O= -1.5 6 -0.7
+//	R= 0.2
+//	color= 1 1 1
+	// 228, 193, 249
+	//color= 0.894117 0.756827 0.9764706
+//end
+
+
+primitive cylinder
+	O1= 0 4.5 -1.8
+	O2= 0 3.5 -1.8
+	R= 0.2
+	color= 1 1 1
+	texture= marble.bmp
+	De= 0 0 1
+	Dc= 0 1 0
+	diff= 0.45
+	spec= 0.25
+	refl= 0.3
+	drefl= 0.25
+	blur= exp
+end
+
+primitive sphere
+	O= 0.5 5.14 -1.8
+	R= 0.2
+	refr= 1
+	rindex= 1.7
+	absor= 0 0 1
+end
+
+
+primitive bezier0
+	O1= 0 5 -1.8
+	O2= 0 5 -1.2
+	P= 0 0.01
+	P= 0.5 0.3
+	P= 1 0.2
+	Cylinder
+	color= 0.5 0.5 0.5
+	spec= 0.2
+	refl= 0.8
+end
+
+primitive sphere
+	O= 0.5 4.2 -1.9
+	R= 0.1
+	color= 1 0 0
+	diff= 1
+end
+
+primitive sphere
+	O= 1.5 6.3 -1.6
+	R= 0.4
+	color= 0.5 0.5 1
+	spec= 0.2
+	refl= 0.8
+end
+
+primitive sphere
+	O= 0 6 -1.5
+	R= 0.5
+	color= 1 1 1
+	texture= soccer.bmp
+	De= 0 0 1
+	Dc= 0 1 0
+	diff= 0.45
+	spec= 0.25
+	refl= 0.3
+	drefl= 0.25
+	blur= exp
+end
+
+primitive plane
+	N= 0 0 1
+	R= -2
+	color= 1 1 1
+	diff= 0.3
+	refl= 0.5
+	drefl= 0.15
+	texture= floor.bmp
+	Dx= 8 0 0
+	Dy= 0 8 0
+	blur= exp
+end
+
+primitive square
+	//O= 0 7 -1.5
+	//Dx= 1 0 0
+	//Dy= 0 0 1
+	//texture= blackwhite.bmp
+	//refl= 0.3
+	O= 3 7 -1.5
+	Dx= 0.6 -0.8 0
+	Dy= 0 0 1
+	color= 1 1 1
+	refl= 1.0
+	diff= 0.0
+	drefl= 0.0
+	blur= exp
+end
+
+primitive square
+	O= 0 8 -1.5
+	Dx= 1 0 0
+	Dy= 0 0 1
+	color= 1 1 1
+	refl= 0.4
+	diff= 0.0
+	drefl= 0.0
+	blur= exp
+end
+
+primitive plane
+	N= 0 0 -1
+	R= -4
+	color= 0 0 1
+	diff= 1
+	Dx= 8 0 0
+	Dy= 0 8 0
+end
