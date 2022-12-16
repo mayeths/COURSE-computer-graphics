@@ -14,8 +14,8 @@
 
 #include "framework/GUI.hpp"
 #include "framework/Shader.hpp"
+#include "framework/Window.hpp"
 #include "util/log.h"
-#include "Window.hpp"
 #include "Mesh.hpp"
 #include "SmileBox.hpp"
 

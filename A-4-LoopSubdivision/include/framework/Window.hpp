@@ -12,9 +12,9 @@
 #include <limits>
 #include <set>
 
-#include "framework/Camera.hpp"
-#include "framework/GUI.hpp"
-#include "framework/Object.hpp"
+#include "Camera.hpp"
+#include "GUI.hpp"
+#include "Object.hpp"
 #include "util/log.h"
 #define MEMORY_IMPL
 #include "util/memory.h"
