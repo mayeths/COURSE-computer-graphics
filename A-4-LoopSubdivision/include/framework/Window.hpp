@@ -148,6 +148,7 @@ public:
             object->Render(now, lastRenderTime, view, projection);
         }
         gui.Render(now, lastRenderTime);
+        this->SwapBuffersAndPollEvents();
     }
 
     void ProcessInput(double now, double lastTime)

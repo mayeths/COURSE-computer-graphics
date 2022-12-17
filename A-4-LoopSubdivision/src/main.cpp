@@ -6,6 +6,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <limits>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/random.hpp>
@@ -79,16 +80,17 @@ int main() {
     double now;
     double lastUpdateTime = 0;
     double lastRenderTime = 0;
+    double FPSlimits = 60; // std::numeric_limits<double>::infinity()
     while (window.ContinueLoop()) {
-        lastRenderTime = now;
-        lastUpdateTime = now;
         now = glfwGetTime();
         ////// Update Logic
         window.Update(now, lastUpdateTime);
-        ////// Render Frame, you can choose to render only when 1 / (now - lastRenderTime) = 60Hz.
-        window.Render(now, lastRenderTime);
-        ////// Finish Render
-        window.SwapBuffersAndPollEvents();
+        lastUpdateTime = now;
+        ////// Render Frame
+        if (now - lastRenderTime >= 1 / FPSlimits) {
+            window.Render(now, lastRenderTime);
+            lastRenderTime = now;
+        }
     }
 
     return 0;
